@@ -222,8 +222,8 @@ function clearGerms() {
 // a section is completed. Every smudge is generated with a random blobby shape,
 // size, tint, rotation and a few scattered sand grains, so no two are alike.
 const DIRT = [
-  { l: 18, t: 26, s: 16 }, { l: 60, t: 23, s: 13 }, { l: 13, t: 50, s: 15 },
-  { l: 66, t: 47, s: 14 }, { l: 27, t: 65, s: 15 }, { l: 55, t: 63, s: 12 },
+  { l: 26, t: 24, s: 16 }, { l: 56, t: 22, s: 13 }, { l: 22, t: 46, s: 15 },
+  { l: 60, t: 44, s: 14 }, { l: 34, t: 60, s: 14 }, { l: 50, t: 58, s: 12 },
 ];
 const EARTH = ["#BE9A5E", "#C9A874", "#B0894C", "#B6884A", "#C4A06A", "#A87C42"];
 const rnd = (a, b) => a + Math.random() * (b - a);
