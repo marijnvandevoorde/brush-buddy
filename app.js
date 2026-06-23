@@ -405,7 +405,78 @@ function finish() {
 // then hovers and waves her wand ("cheering"). Reduced-motion: appears centered,
 // no flight/flap.
 function clearFairy() { els.fairy.innerHTML = ""; }
+
+// Renderer is selectable so we can drop in a generated asset and compare it
+// against the built-in SVG: ?fairy=video|sprite|svg, or window.BrushFairy.set(..).
+function fairyMode() {
+  try {
+    const p = new URLSearchParams(location.search).get("fairy");
+    if (p) return p;
+    return localStorage.getItem("brushBuddy.fairy") || "svg";
+  } catch (e) { return "svg"; }
+}
 function launchFairy() {
+  clearFairy();
+  const mode = fairyMode();
+  if (mode === "video") return launchFairyVideo();
+  if (mode === "sprite") return launchFairySprite();
+  return launchFairySVG();
+}
+
+// VIDEO: the whole fly-in + loop + spin + cheer is baked into the clip, so we
+// just centre it, play once, and fall back to the SVG if it can't load.
+function launchFairyVideo() {
+  const v = document.createElement("video");
+  v.className = "fairy-video";
+  v.muted = true; v.autoplay = true; v.playsInline = true;
+  v.setAttribute("playsinline", "");
+  v.innerHTML =
+    '<source src="fairy.webm" type="video/webm">' +
+    '<source src="fairy.mp4" type="video/mp4">';
+  let fell = false;
+  const fallback = () => { if (!fell) { fell = true; clearFairy(); launchFairySVG(); } };
+  v.addEventListener("error", fallback, { once: true });
+  v.addEventListener("loadeddata", () => { if (v.play) v.play().catch(() => {}); });
+  els.fairy.appendChild(v);
+  setTimeout(() => { if (!v.videoWidth) fallback(); }, 1500); // asset missing → SVG
+}
+
+// SPRITE: a horizontal strip of N frames of the fairy spinning/flapping. CSS
+// steps() cycles the frames (the spin); a vw/vh keyframe flies her in along a
+// loopy path. Frame count via ?frames=N or localStorage (default 8).
+function spriteFrames() {
+  try {
+    const p = new URLSearchParams(location.search).get("frames")
+      || localStorage.getItem("brushBuddy.fairyFrames") || "8";
+    return Math.max(2, parseInt(p, 10) || 8);
+  } catch (e) { return 8; }
+}
+function launchFairySprite() {
+  const FRAMES = spriteFrames();
+  const img = new Image();
+  img.onload = () => {
+    const dispH = 150;
+    const scale = dispH / img.naturalHeight;
+    const dispW = (img.naturalWidth / FRAMES) * scale;
+    const wrap = document.createElement("div");
+    wrap.className = "fairy-sprite-wrap";
+    const d = document.createElement("div");
+    d.className = "fairy-sprite";
+    d.style.width = dispW.toFixed(1) + "px";
+    d.style.height = dispH + "px";
+    d.style.backgroundImage = "url(fairy-sheet.png)";
+    d.style.backgroundSize = (dispW * FRAMES).toFixed(1) + "px " + dispH + "px";
+    d.style.setProperty("--shift", "-" + (dispW * FRAMES).toFixed(1) + "px");
+    d.style.setProperty("--steps", String(FRAMES));
+    d.style.setProperty("--fly", (calm ? "3.2s" : "2.6s"));
+    wrap.appendChild(d);
+    els.fairy.appendChild(wrap);
+  };
+  img.onerror = () => { clearFairy(); launchFairySVG(); };
+  img.src = "fairy-sheet.png";
+}
+
+function launchFairySVG() {
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const flyDur = calm ? 3.2 : 2.6;
   // loopy flight: swoop up from the lower-left, do a loop-the-loop, settle center
@@ -516,6 +587,13 @@ els.calmBtn.addEventListener("click", () => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && running) requestWake();
 });
+
+// Switch fairy renderer at runtime (persists). e.g. BrushFairy.set("video").
+window.BrushFairy = {
+  get: () => fairyMode(),
+  set: (mode) => { try { localStorage.setItem("brushBuddy.fairy", mode); } catch (e) {} return mode; },
+  preview: () => { reset(); started = true; done = true; launchFairy(); },
+};
 
 // ---- Init ------------------------------------------------------------------
 buildScene();

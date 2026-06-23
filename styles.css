@@ -265,6 +265,38 @@ body {
 .fairy-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 6; }
 .fairy-layer svg { width: 100%; height: 100%; display: block; }
 
+/* VIDEO renderer — the clip carries its own fly-in/loop/spin; just centre it. */
+.fairy-video {
+  position: absolute; left: 50%; top: 46%;
+  transform: translate(-50%, -50%);
+  width: min(80%, 360px); height: auto; max-height: 70%;
+  object-fit: contain;
+}
+
+/* SPRITE renderer — steps() cycles the spin frames; a vw/vh keyframe flies her
+   in along a loopy path. Centred via the wrapper so translate is relative. */
+.fairy-sprite-wrap {
+  position: absolute; left: 50%; top: 44%;
+  transform: translate(-50%, -50%);
+}
+.fairy-sprite {
+  background-repeat: no-repeat; background-position: 0 0;
+  animation: fairy-fly var(--fly, 2.6s) ease forwards,
+             fairy-spin .8s steps(var(--steps, 8)) infinite;
+  will-change: transform, background-position;
+}
+@keyframes fairy-spin { to { background-position-x: var(--shift, -800px); } }
+@keyframes fairy-fly {
+  0%   { transform: translate(-58vw, 36vh) scale(.85); opacity: .5; }
+  25%  { transform: translate(20vw, -8vh) scale(1);    opacity: 1; }
+  50%  { transform: translate(-8vw, 6vh); }   /* into the loop */
+  68%  { transform: translate(9vw, -3vh); }   /* around the loop */
+  100% { transform: translate(0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fairy-sprite { animation: fairy-spin 1.2s steps(var(--steps, 8)) infinite; }
+}
+
 /* ---- Keyframes ------------------------------------------------------------ */
 @keyframes tbb-blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
 @keyframes tbb-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }

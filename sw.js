@@ -1,5 +1,5 @@
 /* Brush Buddy service worker — offline-first caching. */
-const CACHE = "brush-buddy-v5";
+const CACHE = "brush-buddy-v6";
 const ASSETS = [
   ".",
   "index.html",
@@ -14,9 +14,15 @@ const ASSETS = [
   "icons/icon-512.png",
   "icons/icon-maskable-512.png",
 ];
+// Optional fairy assets — cached if present; missing ones must NOT fail install.
+const OPTIONAL = ["fairy.webm", "fairy.mp4", "fairy-sheet.png"];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(CACHE)
+      .then((c) => c.addAll(ASSETS).then(() => Promise.allSettled(OPTIONAL.map((u) => c.add(u)))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (e) => {
