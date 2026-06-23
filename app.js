@@ -210,6 +210,37 @@ function clearGerms() {
   els.teeth.querySelectorAll(".germ").forEach((g) => g.remove());
 }
 
+// ---- Dirt on the tooth mascot (fades as it gets clean & happy) -------------
+// One spot per section, so a spot fades each time a section is completed.
+const DIRT = [
+  { l: 18, t: 26, s: 17, c: "#C2A269" },
+  { l: 58, t: 22, s: 13, c: "#B79055" },
+  { l: 33, t: 50, s: 19, c: "#CBA977" },
+  { l: 64, t: 56, s: 12, c: "#B79055" },
+  { l: 24, t: 73, s: 15, c: "#C2A269" },
+  { l: 52, t: 80, s: 11, c: "#CBA977" },
+];
+const dirtEls = [];
+function buildDirt() {
+  const dirt = document.getElementById("dirt");
+  DIRT.forEach((d, i) => {
+    const sp = document.createElement("span");
+    sp.className = "dirt-spot";
+    sp.style.left = d.l + "px";
+    sp.style.top = d.t + "px";
+    sp.style.width = d.s + "px";
+    sp.style.height = (d.s * 0.85).toFixed(1) + "px";
+    sp.style.background = d.c;
+    sp.style.transitionDelay = (i * 0.05).toFixed(2) + "s";
+    dirt.appendChild(sp);
+    dirtEls.push(sp);
+  });
+}
+function updateDirt() {
+  const cleaned = done ? dirtEls.length : (started ? si : 0);
+  dirtEls.forEach((d, i) => d.classList.toggle("clean", i < cleaned));
+}
+
 // ---- State machine ---------------------------------------------------------
 let si = 0;             // current section index, N_SECTIONS when done
 let timeLeft = null;    // seconds left in the current section
@@ -278,6 +309,7 @@ function render() {
   els.mouth.setAttribute("fill", mood >= 4 ? "var(--mouth-excited)" : "transparent");
   els.says.textContent = SAYS[mood];
 
+  updateDirt();
   updateSurface();
 
   els.primary.textContent = !started ? "Start brushing" : done ? "Brush again" : running ? "Pause" : "Resume";
@@ -383,6 +415,7 @@ document.addEventListener("visibilitychange", () => {
 
 // ---- Init ------------------------------------------------------------------
 buildScene();
+buildDirt();
 applyCalm();
 reset();
 
