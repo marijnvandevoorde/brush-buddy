@@ -22,13 +22,22 @@ const N_SECTIONS = SECTIONS.length;
 const RING_R = 118;
 const TEETH_SPAN = 44;      // angular spread of a section's teeth (deg)
 const ARC_SPAN_DEG = 52;    // highlight arc a touch wider than the teeth
-// a few organic crown silhouettes, cycled per tooth so the ring isn't stamped
-const TOOTH_SHAPES = [
-  "46% 46% 38% 38% / 56% 56% 44% 44%",
-  "48% 44% 40% 36% / 58% 54% 46% 42%",
-  "44% 48% 36% 40% / 54% 58% 42% 46%",
-  "47% 45% 39% 37% / 57% 55% 43% 45%",
-];
+// Tooth types by position in the arch (front = incisors, corners = canine fangs,
+// back = molars), so the ring reads like a real set of teeth from above — but
+// stylised, kid-friendly. Dimensions + organic border-radii per type.
+const TOOTH_DIMS = {
+  incisor: { w: 13, h: 22, radii: ["34% 34% 46% 46% / 22% 22% 56% 56%", "32% 36% 44% 48% / 20% 24% 54% 58%"] },
+  canine:  { w: 12, h: 27, radii: ["50% 50% 34% 34% / 64% 64% 28% 28%", "48% 52% 36% 32% / 62% 66% 30% 26%"] },
+  molar:   { w: 20, h: 20, radii: ["38% 38% 40% 40% / 42% 42% 44% 44%", "36% 40% 38% 42% / 40% 44% 42% 46%"] },
+};
+function toothType(ang, arch) {
+  const front = arch === "top" ? 0 : 180;
+  let d = Math.abs(ang - front);
+  d = Math.min(d, 360 - d);
+  if (d <= 25) return "incisor"; // front teeth
+  if (d <= 40) return "canine";  // the fang at the corner
+  return "molar";                // back teeth
+}
 
 // Germs vanish surface-by-surface to nudge focus (outside → top → inside) without
 // hard-splitting the timer. Each surface's germs sit at a different spot on the
@@ -86,10 +95,15 @@ function buildScene() {
       anchor.className = "tooth-anchor";
       anchor.style.transform = `rotate(${ang.toFixed(2)}deg) translateY(-${RING_R}px)`;
       const tooth = document.createElement("div");
-      tooth.className = "tooth";
-      // slight per-tooth variation so the ring looks natural, not stamped
-      tooth.style.borderRadius = TOOTH_SHAPES[(k + si) % TOOTH_SHAPES.length];
-      tooth.style.height = (24 + ((k * 7 + si * 3) % 4)) + "px";
+      const type = toothType(ang, sec.key[0] === "U" ? "top" : "bottom");
+      tooth.className = "tooth " + type;
+      const dim = TOOTH_DIMS[type];
+      const w = dim.w + rnd(-1, 1.5);
+      const h = dim.h + rnd(-1.5, 1.5);
+      tooth.style.width = w.toFixed(1) + "px";
+      tooth.style.height = h.toFixed(1) + "px";
+      tooth.style.margin = `${(-h / 2).toFixed(1)}px 0 0 ${(-w / 2).toFixed(1)}px`;
+      tooth.style.borderRadius = dim.radii[(k + si) % dim.radii.length];
       anchor.appendChild(tooth);
       teethFrag.appendChild(anchor);
       arr.push(tooth);
