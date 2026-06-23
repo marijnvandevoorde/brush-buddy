@@ -263,13 +263,9 @@ body {
   cursor: pointer; padding: 0; opacity: .75;
 }
 
-/* ---- Confetti ------------------------------------------------------------- */
-.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4; }
-.confetti i {
-  position: absolute; top: -30px;
-  border-radius: 2px;
-  animation: tbb-confetti 2s ease-in forwards;
-}
+/* ---- Tooth-fairy finale --------------------------------------------------- */
+.fairy-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 6; }
+.fairy-layer svg { width: 100%; height: 100%; display: block; }
 
 /* ---- Keyframes ------------------------------------------------------------ */
 @keyframes tbb-blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }

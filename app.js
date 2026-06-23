@@ -56,7 +56,7 @@ const els = {
   reset: document.getElementById("reset"),
   soundBtn: document.getElementById("soundBtn"),
   calmBtn: document.getElementById("calmBtn"),
-  confetti: document.getElementById("confetti"),
+  fairy: document.getElementById("fairyLayer"),
 };
 
 // ---- Build ring, dots, labels (data-driven from SECTIONS) ------------------
@@ -338,32 +338,50 @@ function finish() {
   clearGerms();
   render();
   cheerBuddy();
-  launchConfetti();
+  launchFairy();
   endSound();
   buzz([90, 40, 90, 40, 220]);
   releaseWake();
   document.dispatchEvent(new CustomEvent("brush:complete", { detail: { sections: N_SECTIONS, seconds: 120 } }));
 }
 
-// ---- Confetti --------------------------------------------------------------
-function launchConfetti() {
-  els.confetti.innerHTML = "";
-  const n = calm ? 16 : 46;
-  const frag = document.createDocumentFragment();
-  for (let i = 0; i < n; i++) {
-    const c = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-    const size = 7 + Math.random() * 9;
-    const p = document.createElement("i");
-    p.style.left = Math.random() * 100 + "%";
-    p.style.width = size + "px";
-    p.style.height = size * 1.4 + "px";
-    p.style.background = c;
-    p.style.animationDuration = (calm ? 2.6 : 1.6) + Math.random() * 1.4 + "s";
-    p.style.animationDelay = (Math.random() * 0.8) + "s";
-    frag.appendChild(p);
-  }
-  els.confetti.appendChild(frag);
-  setTimeout(() => { if (done) els.confetti.innerHTML = ""; }, 4500);
+// ---- Tooth-fairy finale ----------------------------------------------------
+// A cute SVG fairy flies in along a curvy path (animateMotion), flaps her wings,
+// then hovers and waves her wand ("cheering"). Reduced-motion: appears centered,
+// no flight/flap.
+function clearFairy() { els.fairy.innerHTML = ""; }
+function launchFairy() {
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const flyDur = calm ? 3.0 : 2.2;
+  const motion = reduced ? "" :
+    `<animateMotion dur="${flyDur}s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.22 0.1 0.25 1" path="M -70 770 C 150 560, 340 600, 195 358"/>` +
+    `<animateTransform attributeName="transform" additive="sum" type="translate" begin="${flyDur}s" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="0 0;0 -10;0 0"/>`;
+  const wingL = reduced ? "" : `<animateTransform attributeName="transform" type="rotate" values="0 -8 0;24 -8 0;0 -8 0" dur="0.28s" repeatCount="indefinite"/>`;
+  const wingR = reduced ? "" : `<animateTransform attributeName="transform" type="rotate" values="0 8 0;-24 8 0;0 8 0" dur="0.28s" repeatCount="indefinite"/>`;
+  const wandAnim = reduced ? "" : `<animateTransform attributeName="transform" type="rotate" begin="${flyDur}s" values="0 8 6;-20 8 6;0 8 6" dur="0.8s" repeatCount="indefinite"/>`;
+  const gOpen = reduced ? '<g transform="translate(195,358)">' : "<g>";
+  const dress = "#FF6FAE"; // candy pink dress
+  els.fairy.innerHTML =
+    '<svg class="fairy-svg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice">' +
+      gOpen + motion +
+        // wings (behind the body)
+        `<g><ellipse cx="-24" cy="-6" rx="19" ry="29" fill="rgba(150,200,255,0.6)" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"/>${wingL}</g>` +
+        `<g><ellipse cx="24" cy="-6" rx="19" ry="29" fill="rgba(150,200,255,0.6)" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"/>${wingR}</g>` +
+        // dress, neck, head, hair
+        `<path d="M0 4 L-20 46 Q0 56 20 46 Z" fill="${dress}"/>` +
+        '<rect x="-5" y="-8" width="10" height="18" rx="5" fill="#FCD9B8"/>' +
+        '<circle cx="0" cy="-20" r="14" fill="#FCD9B8"/>' +
+        '<path d="M-14 -22 Q-12 -36 0 -36 Q12 -36 14 -22 Q6 -30 0 -29 Q-6 -30 -14 -22 Z" fill="#7B4B2A"/>' +
+        // face
+        '<circle cx="-5" cy="-20" r="1.8" fill="#2A2A2A"/><circle cx="5" cy="-20" r="1.8" fill="#2A2A2A"/>' +
+        '<path d="M-5 -14 Q0 -10 5 -14" fill="none" stroke="#2A2A2A" stroke-width="1.6" stroke-linecap="round"/>' +
+        // arm + wand with a star
+        `<g><line x1="8" y1="6" x2="30" y2="-18" stroke="#C68A3A" stroke-width="2.4" stroke-linecap="round"/><text x="33" y="-15" font-size="20" text-anchor="middle">⭐</text>${wandAnim}</g>` +
+        // sparkle trail
+        '<text x="-44" y="-34" font-size="14" opacity="0.9">✨</text>' +
+        '<text x="42" y="22" font-size="12" opacity="0.85">✨</text>' +
+      "</g>" +
+    "</svg>";
 }
 
 // ---- Controls --------------------------------------------------------------
@@ -372,7 +390,7 @@ function start() {
   requestWake();
   clearInterval(ticker);
   started = true; running = true; done = false; si = 0; timeLeft = SECTIONS[0].secs;
-  els.confetti.innerHTML = "";
+  clearFairy();
   enterSection(0, false);
   render();
   ticker = setInterval(tick, 1000);
@@ -388,7 +406,7 @@ function reset() {
   started = false; running = false; done = false; si = 0; timeLeft = null;
   currentSurface = -1;
   clearGerms();
-  els.confetti.innerHTML = "";
+  clearFairy();
   render();
   releaseWake();
 }
