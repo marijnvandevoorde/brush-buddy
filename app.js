@@ -412,12 +412,12 @@ function fairyMode() {
   try {
     const p = new URLSearchParams(location.search).get("fairy");
     if (p) return p;
-    return localStorage.getItem("brushBuddy.fairy") || "svg";
+    return localStorage.getItem("brushBuddy.fairy") || "video"; // default to the Veo video
   } catch (e) { return "svg"; }
 }
-function launchFairy() {
+function launchFairy(forceMode) {
   clearFairy();
-  const mode = fairyMode();
+  const mode = forceMode || fairyMode();
   if (mode === "video") return launchFairyVideo();
   if (mode === "sprite") return launchFairySprite();
   return launchFairySVG();
@@ -447,9 +447,9 @@ function launchFairyVideo() {
 function spriteFrames() {
   try {
     const p = new URLSearchParams(location.search).get("frames")
-      || localStorage.getItem("brushBuddy.fairyFrames") || "8";
-    return Math.max(2, parseInt(p, 10) || 8);
-  } catch (e) { return 8; }
+      || localStorage.getItem("brushBuddy.fairyFrames") || "10";
+    return Math.max(2, parseInt(p, 10) || 10);
+  } catch (e) { return 10; }
 }
 function launchFairySprite() {
   const FRAMES = spriteFrames();
@@ -592,8 +592,19 @@ document.addEventListener("visibilitychange", () => {
 window.BrushFairy = {
   get: () => fairyMode(),
   set: (mode) => { try { localStorage.setItem("brushBuddy.fairy", mode); } catch (e) {} return mode; },
-  preview: () => { reset(); started = true; done = true; launchFairy(); },
 };
+
+// TEMPORARY: jump straight to the "all clean" finale with a chosen fairy version
+// so the different renderers can be compared without brushing for 2 minutes.
+function previewFairy(mode) {
+  clearInterval(ticker); ticker = null;
+  started = true; running = false; done = true; si = N_SECTIONS; timeLeft = 0;
+  currentWindow = -1;
+  clearGerms();
+  render();
+  launchFairy(mode);
+}
+window.previewFairy = previewFairy;
 
 // ---- Init ------------------------------------------------------------------
 buildScene();
