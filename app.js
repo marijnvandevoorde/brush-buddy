@@ -5,28 +5,33 @@
 "use strict";
 
 // ---- Config ----------------------------------------------------------------
-// Six sextants in a continuous clockwise path from the top. Front teeth get
-// their own short beats (no "chewing top"; cue inner surface + up-and-down).
-// Back sextants get 2 surface passes (outsides → insides); fronts get 1.
+// Six sextants. Child-dentist guidance: do the whole upper arch, then the lower
+// arch, ENDING on Bottom-Front (lower-incisor insides — the most-missed spot).
+// `center` is the angle on the ring (from top, clockwise) — fixed by anatomy;
+// the array ORDER is the brushing sequence. Back sextants get 3 surface passes
+// (outside → top → inside), fronts get 2 (outside → inside, brushed up & down).
 const SECTIONS = [
-  { key: "UF", label: "Top Front",    center: 0,   teeth: 4, type: "front", secs: 10 },
   { key: "UR", label: "Top Right",    center: 60,  teeth: 4, type: "back",  secs: 25 },
+  { key: "UF", label: "Top Front",    center: 0,   teeth: 4, type: "front", secs: 10 },
+  { key: "UL", label: "Top Left",     center: 300, teeth: 4, type: "back",  secs: 25 },
+  { key: "LL", label: "Bottom Left",  center: 240, teeth: 4, type: "back",  secs: 25 },
   { key: "LR", label: "Bottom Right", center: 120, teeth: 4, type: "back",  secs: 25 },
   { key: "LF", label: "Bottom Front", center: 180, teeth: 4, type: "front", secs: 10 },
-  { key: "LL", label: "Bottom Left",  center: 240, teeth: 4, type: "back",  secs: 25 },
-  { key: "UL", label: "Top Left",     center: 300, teeth: 4, type: "back",  secs: 25 },
 ];
 const N_SECTIONS = SECTIONS.length;
 const RING_R = 118;
 const TEETH_SPAN = 44;      // angular spread of a section's teeth (deg)
 const ARC_SPAN_DEG = 52;    // highlight arc a touch wider than the teeth
-const GERMS_PER_TOOTH = 2;
 
-const SURFACES = {
-  out:   { icon: "🦷", label: "Outsides",     hint: "tiny gentle circles" },
-  in:    { icon: "👅", label: "Insides",      hint: "tiny gentle circles" },
-  front: { icon: "↕️", label: "Front teeth",  hint: "brush up & down — inside too!" },
+// Germs vanish surface-by-surface to nudge focus (outside → top → inside) without
+// hard-splitting the timer. Each surface's germs sit at a different spot on the
+// tooth (outer tip / middle / inner root-side).
+const SURF = {
+  out: { icon: "🦷", label: "Outsides",     hint: "tiny gentle circles", top: -2 },
+  top: { icon: "⬇️", label: "Chewing tops", hint: "gentle back & forth",  top: 7 },
+  in:  { icon: "👅", label: "Insides",      hint: "tiny gentle circles", top: 15 },
 };
+function sectionSurfaces(sec) { return sec.type === "front" ? ["out", "in"] : ["out", "top", "in"]; }
 
 const MOUTHS = [
   "M20 32 Q50 14 80 32",   // 0 sad
@@ -171,26 +176,23 @@ function cheerBuddy() {
   cheerTimer = setTimeout(() => els.buddyBody.classList.remove("cheer"), 600);
 }
 
-// ---- Germs (scrub-away) ----------------------------------------------------
+// ---- Germs (scrub-away, sequenced by surface) ------------------------------
 let activeGerms = [];
-let germTotal = 0;
-function spawnGerms(si) {
+let germWindowTotal = 0;
+let currentWindow = -1;
+function spawnGermsForSurface(sectionIdx, surfKey) {
   clearGerms();
-  teethBySection[si].forEach((tooth) => {
-    for (let g = 0; g < GERMS_PER_TOOTH; g++) {
-      const germ = document.createElement("span");
-      germ.className = "germ";
-      const x = g === 0 ? 0 : 7;
-      const y = g === 0 ? -3 : 7;
-      germ.style.left = (x + (Math.random() * 2 - 1)).toFixed(1) + "px";
-      germ.style.top = (y + (Math.random() * 2 - 1)).toFixed(1) + "px";
-      germ.style.animationDelay = (Math.random() * 1.2).toFixed(2) + "s";
-      tooth.appendChild(germ);
-      activeGerms.push(germ);
-    }
+  const baseTop = SURF[surfKey].top;
+  teethBySection[sectionIdx].forEach((tooth) => {
+    const germ = document.createElement("span");
+    germ.className = "germ";
+    germ.style.left = (2 + (Math.random() * 1.5 - 0.75)).toFixed(1) + "px";
+    germ.style.top = (baseTop + (Math.random() * 1.5 - 0.75)).toFixed(1) + "px";
+    germ.style.animationDelay = (Math.random() * 1.2).toFixed(2) + "s";
+    tooth.appendChild(germ);
+    activeGerms.push(germ);
   });
-  activeGerms.sort(() => Math.random() - 0.5);
-  germTotal = activeGerms.length;
+  germWindowTotal = activeGerms.length;
 }
 function popGerm() {
   const germ = activeGerms.pop();
@@ -198,15 +200,10 @@ function popGerm() {
   germ.classList.add("pop");
   setTimeout(() => germ.remove(), 320);
 }
-function updateGerms(remainTime, sectionSecs) {
-  if (!germTotal) return;
-  const target = Math.ceil(germTotal * (remainTime / sectionSecs));
-  while (activeGerms.length > target) popGerm();
-}
 function clearGerms() {
   activeGerms.forEach((g) => g.remove());
   activeGerms = [];
-  germTotal = 0;
+  germWindowTotal = 0;
   els.teeth.querySelectorAll(".germ").forEach((g) => g.remove());
 }
 
@@ -248,7 +245,6 @@ let running = false;
 let started = false;
 let done = false;
 let ticker = null;
-let currentSurface = -1;
 
 function curSecs() { return SECTIONS[Math.min(si, N_SECTIONS - 1)].secs; }
 function moodIndex() {
@@ -258,25 +254,38 @@ function moodIndex() {
 }
 
 function enterSection(i, announce) {
-  spawnGerms(i);
-  currentSurface = -1;
+  clearGerms();
+  currentWindow = -1; // germs for the first surface are spawned by updateBrushing()
   if (announce) { cheerBuddy(); sectionBeep(); buzz([110, 50, 110]); }
 }
 
-function surfaceFor(sec) {
-  if (sec.type === "front") return Object.assign({ phase: 0 }, SURFACES.front);
-  const into = sec.secs - timeLeft;
-  const phase = into < sec.secs / 2 ? 0 : 1;
-  return Object.assign({ phase }, phase === 0 ? SURFACES.out : SURFACES.in);
-}
-function updateSurface() {
-  if (!started || done || timeLeft == null) { els.surfaceCue.textContent = ""; return; }
-  const s = surfaceFor(SECTIONS[si]);
-  els.surfaceCue.textContent = `${s.icon} ${s.label} · ${s.hint}`;
-  if (s.phase !== currentSurface) {
-    if (currentSurface !== -1) surfaceTick(); // soft "move now" cue between passes
-    currentSurface = s.phase;
+// Drives the surface cue + the surface-sequenced germs. Within a section the
+// single countdown ring keeps running (no hard 18-way split); germs simply move
+// outside → top → inside and vanish as the child scrubs.
+function surfaceLabel(sec, surfKey) {
+  const s = SURF[surfKey];
+  if (sec.type === "front") {
+    return `${surfKey === "in" ? "↕️" : "🦷"} ${surfKey === "in" ? "Inside front" : "Front teeth"} · brush up & down`;
   }
+  return `${s.icon} ${s.label} · ${s.hint}`;
+}
+function updateBrushing() {
+  if (!started || done || timeLeft == null) { els.surfaceCue.textContent = ""; currentWindow = -1; return; }
+  const sec = SECTIONS[si];
+  const surfaces = sectionSurfaces(sec);
+  const winLen = sec.secs / surfaces.length;
+  const into = sec.secs - timeLeft;
+  const win = Math.min(surfaces.length - 1, Math.floor(into / winLen));
+  if (win !== currentWindow) {
+    currentWindow = win;
+    spawnGermsForSurface(si, surfaces[win]);
+    if (into > 0.5) surfaceTick(); // soft "move to the next surface" cue
+  }
+  els.surfaceCue.textContent = surfaceLabel(sec, surfaces[win]);
+  // scrub this surface's germs away across its sub-window
+  const inWinRemain = winLen - (into - win * winLen);
+  const target = Math.ceil(germWindowTotal * (inWinRemain / winLen));
+  while (activeGerms.length > target) popGerm();
 }
 
 function render() {
@@ -310,14 +319,14 @@ function render() {
   els.says.textContent = SAYS[mood];
 
   updateDirt();
-  updateSurface();
+  updateBrushing();
 
   els.primary.textContent = !started ? "Start brushing" : done ? "Brush again" : running ? "Pause" : "Resume";
 }
 
 function tick() {
   if (!running) return;
-  if (timeLeft > 1) { timeLeft -= 1; updateGerms(timeLeft, curSecs()); render(); return; }
+  if (timeLeft > 1) { timeLeft -= 1; render(); return; }
   if (si < N_SECTIONS - 1) {
     si += 1;
     timeLeft = curSecs();
@@ -404,7 +413,7 @@ function reset() {
   clearInterval(ticker);
   ticker = null;
   started = false; running = false; done = false; si = 0; timeLeft = null;
-  currentSurface = -1;
+  currentWindow = -1;
   clearGerms();
   clearFairy();
   render();
