@@ -1,10 +1,12 @@
 /* Brush Buddy service worker — offline-first caching. */
-const CACHE = "brush-buddy-v1";
+const CACHE = "brush-buddy-v4";
 const ASSETS = [
   ".",
   "index.html",
   "styles.css",
+  "streak-logic.js",
   "app.js",
+  "streaks.js",
   "manifest.webmanifest",
   "icons/favicon.png",
   "icons/apple-touch-icon.png",

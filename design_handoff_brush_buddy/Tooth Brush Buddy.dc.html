@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  @keyframes tbb-blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+  @keyframes tbb-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes tbb-quadblink {
+    0%, 100% { box-shadow: 0 0 0 4px var(--accent2, #F4C430), 0 0 28px 6px var(--accent2, #F4C430); border-color: var(--accent2, #F4C430); }
+    50%      { box-shadow: 0 0 0 8px var(--accent, #2D7DD2),  0 0 44px 14px var(--accent, #2D7DD2); border-color: var(--accent, #2D7DD2); }
+  }
+  @keyframes tbb-toothpulse { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-3px) scale(1.12); } }
+  @keyframes tbb-confetti { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(900px) rotate(720deg); opacity: 0; } }
+  @keyframes tbb-pop { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes tbb-sparkle { 0%, 100% { opacity: 0.2; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1.2); } }
+  @keyframes tbb-arc { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.18; } }
+</style>
+</helmet>
+<div style="--accent: {{ accent }}; --accent2: {{ accent2 }}; --happy: {{ happy }}; --bg: {{ bg }}; --text: {{ text }}; width: 390px; height: 844px; margin: 0 auto; background: var(--bg, #EAF4FF); font-family: 'Nunito', sans-serif; color: var(--text, #1B3A57); position: relative; overflow: hidden; display: flex; flex-direction: column;">
+
+  <!-- header -->
+  <div style="padding: 22px 24px 8px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 24px; line-height: 1;">Brush Buddy</div>
+      <div style="font-weight: 800; font-size: 15px; background: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 999px;">{{ statusText }}</div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <sc-for list="{{ quadrants }}" as="q" hint-placeholder-count="4">
+        <div style="{{ q.dotStyle }}"></div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- stage: buddy centered, quadrants around -->
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 16px; padding: 18px 18px 0;">
+    <div style="position: relative; width: 320px; height: 320px;">
+      <!-- glowing arc behind the active quadrant -->
+      <svg viewBox="0 0 320 320" style="position: absolute; inset: 0; width: 100%; height: 100%;">
+        <circle cx="160" cy="160" r="118" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="34"></circle>
+        <sc-if value="{{ arcVisible }}" hint-placeholder-val="{{ false }}">
+          <circle cx="160" cy="160" r="118" fill="none" stroke="var(--accent2, #F4C430)" stroke-width="34" stroke-linecap="round" stroke-dasharray="{{ arcDash }}" style="transform: rotate({{ arcRot }}deg); transform-origin: 160px 160px; animation: tbb-arc 0.9s ease-in-out infinite;"></circle>
+        </sc-if>
+      </svg>
+      <!-- ring of teeth -->
+      <sc-for list="{{ teethRing }}" as="t" hint-placeholder-count="20">
+        <div style="{{ t.pos }}"><div style="{{ t.tooth }}"></div></div>
+      </sc-for>
+      <!-- quadrant labels around the ring -->
+      <sc-for list="{{ labelChips }}" as="l" hint-placeholder-count="4">
+        <div style="{{ l.style }}">{{ l.text }}</div>
+      </sc-for>
+      <!-- buddy in the center -->
+      <div style="position: absolute; top: 50%; left: 50%; width: 150px; height: 150px; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; z-index: 3;">
+        <div style="position: absolute; inset: -6px; background: var(--bg, #EAF4FF); border-radius: 50%;"></div>
+        <!-- countdown ring -->
+        <svg viewBox="0 0 100 100" style="position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg);">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="6"></circle>
+          <circle cx="50" cy="50" r="46" fill="none" stroke="var(--accent, #2D7DD2)" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ ringCirc }}" stroke-dashoffset="{{ ringOffset }}" style="transition: stroke-dashoffset 0.9s linear;"></circle>
+        </svg>
+        <!-- buddy body -->
+        <div style="position: relative; width: 104px; height: 116px; animation: tbb-float 3s ease-in-out infinite;">
+          <div style="{{ bodyStyle }}"></div>
+          <sc-if value="{{ isTooth }}" hint-placeholder-val="{{ true }}">
+            <div style="position: absolute; bottom: -6px; left: 50%; width: 26px; height: 34px; background: var(--bg, #EAF4FF); border-radius: 0 0 60% 60%; transform: translateX(-50%);"></div>
+          </sc-if>
+          <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;">
+            <div style="display: flex; gap: 20px;">
+              <div style="width: 14px; height: {{ eyeH }}px; background: #2A2A2A; border-radius: 50%; animation: tbb-blink 4.5s infinite;"></div>
+              <div style="width: 14px; height: {{ eyeH }}px; background: #2A2A2A; border-radius: 50%; animation: tbb-blink 4.5s infinite;"></div>
+            </div>
+            <svg viewBox="0 0 100 50" style="width: 58px; height: 30px;">
+              <path d="{{ mouthPath }}" fill="{{ mouthFill }}" stroke="#2A2A2A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.4s ease;"></path>
+            </svg>
+          </div>
+          <sc-if value="{{ excited }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; top: -6px; right: -10px; font-size: 22px; animation: tbb-sparkle 1s infinite;">✨</div>
+            <div style="position: absolute; bottom: 6px; left: -12px; font-size: 16px; animation: tbb-sparkle 1.3s infinite;">✨</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+    <div style="font-family: 'Baloo 2', cursive; font-weight: 700; font-size: 19px; text-align: center;">{{ buddySays }}</div>
+  </div>
+
+  <!-- controls -->
+  <div style="padding: 16px 24px 28px; display: flex; flex-direction: column; gap: 10px;">
+    <button onClick="{{ primaryAction }}" style="border: none; cursor: pointer; font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 20px; color: #fff; background: var(--accent, #2D7DD2); padding: 16px; border-radius: 20px; box-shadow: 0 6px 0 rgba(0,0,0,0.12); width: 100%;">{{ primaryLabel }}</button>
+    <button onClick="{{ reset }}" style="border: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; color: var(--text, #1B3A57); background: transparent; opacity: 0.6; padding: 4px;">Start over</button>
+  </div>
+
+  <!-- confetti -->
+  <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; pointer-events: none; overflow: hidden;">
+      <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="0">
+        <div style="{{ c.style }}"></div>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;bright&quot;,&quot;candy&quot;,&quot;ocean&quot;],&quot;default&quot;:&quot;candy&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;buddyStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;tooth&quot;,&quot;smiley&quot;,&quot;monster&quot;],&quot;default&quot;:&quot;monster&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;secondsPerQuadrant&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:30,&quot;min&quot;:5,&quot;max&quot;:60,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  state = { idx: 0, timeLeft: null, running: false, started: false, done: false, confetti: [] };
+
+  themes = {
+    bright: { accent: '#2D7DD2', accent2: '#F4C430', happy: '#3FB57E', bg: '#EAF4FF', text: '#1B3A57' },
+    candy:  { accent: '#FF6FAE', accent2: '#B79CED', happy: '#5FD0B6', bg: '#FFF0F7', text: '#6B3A56' },
+    ocean:  { accent: '#13A6A6', accent2: '#54C7E8', happy: '#7FCF6E', bg: '#E5FAF8', text: '#0E4D4D' },
+  };
+
+  labels = ['Top Left', 'Top Right', 'Bottom Right', 'Bottom Left'];
+  mouths = [
+    'M20 32 Q50 14 80 32',                 // sad
+    'M22 30 L78 30',                       // meh
+    'M22 28 Q50 38 78 28',                 // slight
+    'M20 26 Q50 46 80 26',                 // smile
+    'M18 23 Q50 53 82 23 Z',               // big open
+  ];
+  says = ['Ready? Let\u2019s brush!', 'Nice! Keep going \u2192', 'Great brushing!', 'Almost sparkling!', 'All clean! \uD83C\uDF89'];
+
+  get secs() { return Math.max(5, this.props.secondsPerQuadrant ?? 30); }
+
+  componentWillUnmount() { clearInterval(this._t); }
+
+  start = () => {
+    clearInterval(this._t);
+    this.setState({ started: true, running: true, done: false, idx: 0, timeLeft: this.secs, confetti: [] });
+    this._t = setInterval(this.tick, 1000);
+  };
+  tick = () => {
+    this.setState(s => {
+      if (!s.running) return null;
+      if (s.timeLeft > 1) return { timeLeft: s.timeLeft - 1 };
+      if (s.idx < 3) return { idx: s.idx + 1, timeLeft: this.secs };
+      clearInterval(this._t);
+      return { running: false, done: true, idx: 4, timeLeft: 0, confetti: this.makeConfetti() };
+    });
+  };
+  toggle = () => this.setState(s => ({ running: !s.running }));
+  reset = () => { clearInterval(this._t); this.setState({ idx: 0, timeLeft: null, running: false, started: false, done: false, confetti: [] }); };
+
+  makeConfetti() {
+    const cols = ['#F4C430', '#FF6FAE', '#54C7E8', '#7FCF6E', '#B79CED', '#2D7DD2'];
+    return Array.from({ length: 46 }, (_, i) => {
+      const c = cols[i % cols.length];
+      const size = 7 + Math.random() * 9;
+      return { style: `position:absolute; top:-30px; left:${Math.random() * 100}%; width:${size}px; height:${size * 1.4}px; background:${c}; border-radius:2px; animation: tbb-confetti ${1.6 + Math.random() * 1.4}s ${Math.random() * 0.8}s ease-in forwards;` };
+    });
+  }
+
+  renderVals() {
+    const th = this.themes[this.props.theme] || this.themes.candy;
+    const style = this.props.buddyStyle || 'monster';
+    const isTooth = style === 'tooth', isSmiley = style === 'smiley', isMonster = style === 'monster';
+    const { idx, started, done, running } = this.state;
+    const moodIdx = !started ? 0 : Math.min(idx, 4);
+
+    let bodyStyle;
+    if (isTooth) {
+      bodyStyle = `width:100%; height:100%; background:#fff; border-radius:46% 46% 40% 40% / 56% 56% 46% 46%; box-shadow: inset -10px -12px 0 rgba(0,0,0,0.05), 0 10px 22px rgba(0,0,0,0.12);`;
+    } else if (isSmiley) {
+      bodyStyle = `width:128px; height:128px; margin:8px auto 0; background: var(--accent2, #F4C430); border-radius:50%; box-shadow: inset -10px -12px 0 rgba(0,0,0,0.08), 0 10px 22px rgba(0,0,0,0.14);`;
+    } else {
+      bodyStyle = `width:100%; height:100%; background: var(--accent, #2D7DD2); border-radius:50% 50% 44% 44% / 58% 58% 42% 42%; box-shadow: inset -10px -12px 0 rgba(0,0,0,0.1), 0 10px 22px rgba(0,0,0,0.16);`;
+    }
+
+    const ringCirc = 2 * Math.PI * 46;
+    const frac = (started && !done && this.state.timeLeft != null) ? (this.state.timeLeft / this.secs) : (done ? 0 : 1);
+    const ringOffset = ringCirc * (1 - frac);
+
+    const dotCol = th.happy;
+    // ---- circular ring of teeth around the buddy ----
+    const R = 118;
+    const baseFor = [270, 0, 90, 180];               // arc start (from top, clockwise) for TL, TR, BR, BL
+    const perQuad = 5;
+    const teethRing = [];
+    this.labels.forEach((label, qi) => {
+      const active = started && !done && qi === idx;
+      const completed = done || qi < idx;
+      const bd = completed ? th.happy : active ? th.accent : 'rgba(0,0,0,0.10)';
+      for (let k = 0; k < perQuad; k++) {
+        const ang = baseFor[qi] + 11 + k * 17;
+        const pos = `position:absolute; left:50%; top:50%; width:0; height:0; transform: rotate(${ang}deg) translateY(-${R}px);`;
+        const tooth = `width:16px; height:25px; margin:-12.5px 0 0 -8px; background:#fff; border:2.5px solid ${bd}; border-radius:8px 8px 5px 5px; box-shadow:0 2px 5px rgba(0,0,0,0.12); ${active ? 'animation: tbb-toothpulse 0.7s ease-in-out infinite;' : ''}`;
+        teethRing.push({ pos, tooth });
+      }
+    });
+
+    const corners = ['top:0; left:0;', 'top:0; right:0;', 'bottom:0; right:0;', 'bottom:0; left:0;'];
+    const labelChips = this.labels.map((label, qi) => {
+      const active = started && !done && qi === idx;
+      const completed = done || qi < idx;
+      const color = active ? th.accent : completed ? th.happy : 'rgba(0,0,0,0.32)';
+      return { text: label, style: `position:absolute; ${corners[qi]} font-weight:800; font-size:11px; letter-spacing:0.5px; text-transform:uppercase; color:${color};` };
+    });
+
+    const arcVisible = started && !done;
+    const arcCirc = 2 * Math.PI * 118;
+    const arcDash = `${arcCirc / 4 - 22} ${arcCirc}`;
+    const arcRot = baseFor[Math.min(idx, 3)] - 90 + 11;
+
+    const quadrants = this.labels.map((label, i) => {
+      const active = started && !done && i === idx;
+      const completed = done || i < idx;
+      return { dotStyle: `flex:1; height:8px; border-radius:999px; background:${completed ? dotCol : active ? th.accent2 : 'rgba(0,0,0,0.1)'};` };
+    });
+
+    return {
+      ...th, isTooth, isSmiley, isMonster, bodyStyle,
+      eyeH: moodIdx === 0 ? 13 : 17,
+      mouthPath: this.mouths[moodIdx],
+      mouthFill: moodIdx >= 4 ? '#C2447A' : 'transparent',
+      buddySays: this.says[moodIdx],
+      excited: done,
+      ringCirc, ringOffset, quadrants, teethRing, labelChips, arcVisible, arcDash, arcRot,
+      statusText: !started ? 'Ready' : done ? 'Done!' : `${idx + 1} of 4`,
+      done,
+      primaryAction: !started || done ? this.start : this.toggle,
+      primaryLabel: !started ? 'Start brushing' : done ? 'Brush again' : running ? 'Pause' : 'Resume',
+      reset: this.reset,
+      confetti: this.state.confetti,
+    };
+  }
+}
+</script>
+</body>
+</html>

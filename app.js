@@ -1,88 +1,125 @@
-/* Brush Buddy — a visual 2-minute, quadrant-by-quadrant brushing guide. */
+/* Brush Buddy — guided 2-minute brushing with a mascot.
+   Iteration 3: 6-sextant map (dedicated front-teeth sections), per child-dentist
+   guidance — 4 back beats (25s) + 2 front beats (10s) = 120s. Plus in-section
+   surface sub-cues, scrub-away germs, a lively buddy, and a Calm/bedtime mode. */
 "use strict";
 
-// ---- Timing ----------------------------------------------------------------
-const QUADRANT_SEC = 30;   // time per quadrant
-const BRUSH_SEC    = 120;  // 4 quadrants = 2 minutes (smile)
-const TOTAL_SEC    = 150;  // +30s bonus -> star eyes at 2:30
-
-// Brushing order: upper-right -> upper-left -> lower-left -> lower-right.
-const QUADRANTS = [
-  { id: "q-ur", label: "upper right", phase: "Top right" },
-  { id: "q-ul", label: "upper left",  phase: "Top left"  },
-  { id: "q-ll", label: "lower left",  phase: "Bottom left"  },
-  { id: "q-lr", label: "lower right", phase: "Bottom right" },
+// ---- Config ----------------------------------------------------------------
+// Six sextants in a continuous clockwise path from the top. Front teeth get
+// their own short beats (no "chewing top"; cue inner surface + up-and-down).
+// Back sextants get 2 surface passes (outsides → insides); fronts get 1.
+const SECTIONS = [
+  { key: "UF", label: "Top Front",    center: 0,   teeth: 4, type: "front", secs: 10 },
+  { key: "UR", label: "Top Right",    center: 60,  teeth: 4, type: "back",  secs: 25 },
+  { key: "LR", label: "Bottom Right", center: 120, teeth: 4, type: "back",  secs: 25 },
+  { key: "LF", label: "Bottom Front", center: 180, teeth: 4, type: "front", secs: 10 },
+  { key: "LL", label: "Bottom Left",  center: 240, teeth: 4, type: "back",  secs: 25 },
+  { key: "UL", label: "Top Left",     center: 300, teeth: 4, type: "back",  secs: 25 },
 ];
+const N_SECTIONS = SECTIONS.length;
+const RING_R = 118;
+const TEETH_SPAN = 44;      // angular spread of a section's teeth (deg)
+const ARC_SPAN_DEG = 52;    // highlight arc a touch wider than the teeth
+const GERMS_PER_TOOTH = 2;
 
-// Mouth shapes that get happier as brushing progresses.
+const SURFACES = {
+  out:   { icon: "🦷", label: "Outsides",     hint: "tiny gentle circles" },
+  in:    { icon: "👅", label: "Insides",      hint: "tiny gentle circles" },
+  front: { icon: "↕️", label: "Front teeth",  hint: "brush up & down — inside too!" },
+};
+
 const MOUTHS = [
-  "M172,214 Q200,224 228,214", // ready
-  "M170,213 Q200,231 230,213", // q1
-  "M168,212 Q200,238 232,212", // q2
-  "M166,210 Q200,246 234,210", // q3
-  "M164,209 Q200,252 236,209", // q4
-  "M160,206 Q200,262 240,206", // smile @ 2:00
+  "M20 32 Q50 14 80 32",   // 0 sad
+  "M22 30 L78 30",         // 1 meh
+  "M22 28 Q50 38 78 28",   // 2 slight
+  "M20 26 Q50 46 80 26",   // 3 smile
+  "M18 23 Q50 53 82 23 Z", // 4 big open
 ];
-const MOUTH_OPEN = "M162,205 Q200,213 238,205 Q232,256 200,259 Q168,256 162,205 Z";
+const SAYS = ["Ready? Let's brush!", "Nice! Keep going →", "Great brushing!", "Almost sparkling!", "All clean! 🎉"];
+const CONFETTI_COLORS = ["#F4C430", "#FF6FAE", "#54C7E8", "#7FCF6E", "#B79CED", "#2D7DD2"];
 
 // ---- Elements --------------------------------------------------------------
 const els = {
-  instruction: document.getElementById("instruction"),
-  clock: document.getElementById("clock"),
-  phase: document.getElementById("phase"),
-  startBtn: document.getElementById("startBtn"),
-  resetBtn: document.getElementById("resetBtn"),
-  soundBtn: document.getElementById("soundBtn"),
+  app: document.getElementById("app"),
+  status: document.getElementById("status"),
+  dots: document.getElementById("dots"),
+  teeth: document.getElementById("teeth"),
+  labels: document.getElementById("labels"),
+  arc: document.getElementById("arc"),
+  cdRing: document.getElementById("cdRing"),
+  buddyBody: document.getElementById("buddyBody"),
+  face: document.querySelector(".face"),
   mouth: document.getElementById("mouth"),
-  face: document.getElementById("face"),
-  ring: document.getElementById("ring"),
+  says: document.getElementById("says"),
+  surfaceCue: document.getElementById("surfaceCue"),
+  primary: document.getElementById("primary"),
+  reset: document.getElementById("reset"),
+  soundBtn: document.getElementById("soundBtn"),
+  calmBtn: document.getElementById("calmBtn"),
   confetti: document.getElementById("confetti"),
 };
 
-// ---- Build the teeth -------------------------------------------------------
-const SVG_NS = "http://www.w3.org/2000/svg";
+// ---- Build ring, dots, labels (data-driven from SECTIONS) ------------------
+const teethBySection = [];
+const dotEls = [];
+const labelEls = [];
+function buildScene() {
+  const teethFrag = document.createDocumentFragment();
+  SECTIONS.forEach((sec, si) => {
+    const arr = [];
+    const N = sec.teeth;
+    for (let k = 0; k < N; k++) {
+      const ang = sec.center - TEETH_SPAN / 2 + k * (TEETH_SPAN / (N - 1));
+      const anchor = document.createElement("div");
+      anchor.className = "tooth-anchor";
+      anchor.style.transform = `rotate(${ang.toFixed(2)}deg) translateY(-${RING_R}px)`;
+      const tooth = document.createElement("div");
+      tooth.className = "tooth";
+      anchor.appendChild(tooth);
+      teethFrag.appendChild(anchor);
+      arr.push(tooth);
+    }
+    teethBySection.push(arr);
 
-function buildArch({ cx, cy, rx, ry, lower, rightGroup, leftGroup }) {
-  const N = 10, A0 = 18, A1 = 162;
-  for (let i = 0; i < N; i++) {
-    const aDeg = A0 + (A1 - A0) * (i / (N - 1));
-    const a = (aDeg * Math.PI) / 180;
-    const x = cx + rx * Math.cos(a);
-    const y = lower ? cy + ry * Math.sin(a) : cy - ry * Math.sin(a);
-    // outward normal angle -> align tooth's long axis radially
-    const phi = Math.atan2(lower ? Math.sin(a) : -Math.sin(a), Math.cos(a));
-    const rot = (phi * 180) / Math.PI + 90;
+    // progress dot
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    els.dots.appendChild(dot);
+    dotEls.push(dot);
 
-    const t = document.createElementNS(SVG_NS, "rect");
-    t.setAttribute("class", "tooth");
-    t.setAttribute("x", -11);
-    t.setAttribute("y", -15);
-    t.setAttribute("width", 22);
-    t.setAttribute("height", 30);
-    t.setAttribute("rx", 9);
-    t.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot.toFixed(1)})`);
-    (aDeg < 90 ? rightGroup : leftGroup).appendChild(t);
-  }
+    // label positioned around the ring at the section's center angle
+    const rad = (sec.center * Math.PI) / 180;
+    const x = 160 + 150 * Math.sin(rad);
+    const y = 160 - 150 * Math.cos(rad);
+    const lab = document.createElement("div");
+    lab.className = "qlabel";
+    lab.textContent = sec.label;
+    lab.style.left = x.toFixed(1) + "px";
+    lab.style.top = y.toFixed(1) + "px";
+    els.labels.appendChild(lab);
+    labelEls.push(lab);
+  });
+  els.teeth.appendChild(teethFrag);
 }
 
-function buildTeeth() {
-  buildArch({ cx: 200, cy: 200, rx: 140, ry: 120, lower: false,
-    rightGroup: document.getElementById("q-ur"),
-    leftGroup:  document.getElementById("q-ul") });
-  buildArch({ cx: 200, cy: 200, rx: 140, ry: 120, lower: true,
-    rightGroup: document.getElementById("q-lr"),
-    leftGroup:  document.getElementById("q-ll") });
-}
+// ---- Ring geometry ---------------------------------------------------------
+const CD_CIRC = 2 * Math.PI * 46;
+const ARC_CIRC = 2 * Math.PI * RING_R;
+els.cdRing.style.strokeDasharray = CD_CIRC.toFixed(2);
+els.arc.style.strokeDasharray = `${(ARC_CIRC * ARC_SPAN_DEG / 360).toFixed(2)} ${ARC_CIRC.toFixed(2)}`;
 
-// ---- Progress ring ---------------------------------------------------------
-const RING_C = 2 * Math.PI * 86;
-els.ring.style.strokeDasharray = RING_C.toFixed(2);
-function setRing(progress) { // 0..1
-  els.ring.style.strokeDashoffset = (RING_C * (1 - Math.min(1, progress))).toFixed(2);
+// ---- Settings: sound + calm mode ------------------------------------------
+let soundOn = true;
+let calm = false;
+try { calm = localStorage.getItem("brushBuddy.calm") === "1"; } catch (e) {}
+function applyCalm() {
+  els.app.setAttribute("data-calm", calm ? "true" : "false");
+  els.calmBtn.textContent = calm ? "🌙" : "☀️";
+  els.calmBtn.setAttribute("aria-pressed", String(calm));
+  els.calmBtn.title = calm ? "Calm mode on" : "Calm mode off";
 }
 
 // ---- Sound (Web Audio, no assets) -----------------------------------------
-let soundOn = true;
 let audioCtx = null;
 function ensureAudio() {
   if (!audioCtx) {
@@ -91,7 +128,7 @@ function ensureAudio() {
   }
   if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
 }
-function tone(freq, start, dur, type = "sine", gain = 0.18) {
+function tone(freq, start, dur, type = "sine", gain = 0.16) {
   if (!soundOn || !audioCtx) return;
   const t0 = audioCtx.currentTime + start;
   const osc = audioCtx.createOscillator();
@@ -105,44 +142,18 @@ function tone(freq, start, dur, type = "sine", gain = 0.18) {
   osc.start(t0);
   osc.stop(t0 + dur + 0.02);
 }
-function beepSwitch() { tone(660, 0, 0.18, "triangle"); tone(880, 0.12, 0.18, "triangle"); }
-function fanfare() {
-  [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.16, 0.35, "triangle", 0.22));
+function sectionBeep() {
+  if (calm) { tone(440, 0, 0.2, "sine", 0.07); return; }
+  tone(660, 0, 0.16, "triangle"); tone(880, 0.11, 0.16, "triangle");
 }
-function buzz(ms) { if (navigator.vibrate) try { navigator.vibrate(ms); } catch (e) {} }
+function surfaceTick() { if (!calm) tone(560, 0, 0.09, "sine", 0.06); }
+function endSound() {
+  if (calm) { tone(523, 0, 0.3, "sine", 0.1); tone(659, 0.18, 0.34, "sine", 0.1); return; }
+  [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.16, 0.32, "triangle", 0.2));
+}
+function buzz(p) { if (calm || !navigator.vibrate) return; try { navigator.vibrate(p); } catch (e) {} }
 
-// ---- Face ------------------------------------------------------------------
-function setMouth(i) {
-  els.mouth.classList.remove("open");
-  els.mouth.setAttribute("d", MOUTHS[i]);
-}
-function celebrateFace() {
-  els.face.classList.add("celebrate");
-  els.mouth.classList.add("open");
-  els.mouth.setAttribute("d", MOUTH_OPEN);
-}
-function resetFace() {
-  els.face.classList.remove("celebrate");
-  setMouth(0);
-}
-
-// ---- Confetti --------------------------------------------------------------
-const COLORS = ["#fbbf24", "#fb7185", "#34d399", "#60a5fa", "#f472b6", "#ffffff"];
-function launchConfetti() {
-  els.confetti.innerHTML = "";
-  for (let i = 0; i < 90; i++) {
-    const p = document.createElement("i");
-    p.style.left = Math.random() * 100 + "%";
-    p.style.background = COLORS[(Math.random() * COLORS.length) | 0];
-    p.style.animationDuration = (1.8 + Math.random() * 2.2) + "s";
-    p.style.animationDelay = (Math.random() * 0.6) + "s";
-    p.style.transform = `scale(${0.7 + Math.random()})`;
-    els.confetti.appendChild(p);
-  }
-  setTimeout(() => { els.confetti.innerHTML = ""; }, 6000);
-}
-
-// ---- Wake lock (keep screen awake while brushing) --------------------------
+// ---- Wake lock -------------------------------------------------------------
 let wakeLock = null;
 async function requestWake() {
   try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); }
@@ -150,150 +161,229 @@ async function requestWake() {
 }
 function releaseWake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
 
-// ---- State machine ---------------------------------------------------------
-let state = "idle";        // idle | running | paused | done
-let elapsed = 0;           // seconds (float)
-let lastTs = 0;            // performance.now() reference
-let currentQuad = -1;
-let ticker = null;
-
-function fmt(sec) {
-  const s = Math.max(0, Math.floor(sec));
-  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+// ---- Buddy reaction --------------------------------------------------------
+let cheerTimer = null;
+function cheerBuddy() {
+  els.buddyBody.classList.remove("cheer");
+  void els.buddyBody.offsetWidth;
+  els.buddyBody.classList.add("cheer");
+  clearTimeout(cheerTimer);
+  cheerTimer = setTimeout(() => els.buddyBody.classList.remove("cheer"), 600);
 }
 
-function setActiveQuad(idx) {
-  QUADRANTS.forEach((q, i) => {
-    const g = document.getElementById(q.id);
-    g.classList.toggle("active", i === idx);
-    g.classList.toggle("done", i < idx);
+// ---- Germs (scrub-away) ----------------------------------------------------
+let activeGerms = [];
+let germTotal = 0;
+function spawnGerms(si) {
+  clearGerms();
+  teethBySection[si].forEach((tooth) => {
+    for (let g = 0; g < GERMS_PER_TOOTH; g++) {
+      const germ = document.createElement("span");
+      germ.className = "germ";
+      const x = g === 0 ? 0 : 7;
+      const y = g === 0 ? -3 : 7;
+      germ.style.left = (x + (Math.random() * 2 - 1)).toFixed(1) + "px";
+      germ.style.top = (y + (Math.random() * 2 - 1)).toFixed(1) + "px";
+      germ.style.animationDelay = (Math.random() * 1.2).toFixed(2) + "s";
+      tooth.appendChild(germ);
+      activeGerms.push(germ);
+    }
   });
+  activeGerms.sort(() => Math.random() - 0.5);
+  germTotal = activeGerms.length;
+}
+function popGerm() {
+  const germ = activeGerms.pop();
+  if (!germ) return;
+  germ.classList.add("pop");
+  setTimeout(() => germ.remove(), 320);
+}
+function updateGerms(remainTime, sectionSecs) {
+  if (!germTotal) return;
+  const target = Math.ceil(germTotal * (remainTime / sectionSecs));
+  while (activeGerms.length > target) popGerm();
+}
+function clearGerms() {
+  activeGerms.forEach((g) => g.remove());
+  activeGerms = [];
+  germTotal = 0;
+  els.teeth.querySelectorAll(".germ").forEach((g) => g.remove());
 }
 
-function enterQuad(idx) {
-  currentQuad = idx;
-  const q = QUADRANTS[idx];
-  setActiveQuad(idx);
-  setMouth(idx + 1);
-  els.instruction.innerHTML = `Brush your <strong>${q.label}</strong> teeth`;
-  els.phase.textContent = `Quadrant ${idx + 1} of 4 · ${q.phase}`;
-  beepSwitch();
-  buzz([120, 60, 120]);
+// ---- State machine ---------------------------------------------------------
+let si = 0;             // current section index, N_SECTIONS when done
+let timeLeft = null;    // seconds left in the current section
+let running = false;
+let started = false;
+let done = false;
+let ticker = null;
+let currentSurface = -1;
+
+function curSecs() { return SECTIONS[Math.min(si, N_SECTIONS - 1)].secs; }
+function moodIndex() {
+  if (!started) return 0;
+  if (done) return 4;
+  return Math.min(4, Math.round((si / N_SECTIONS) * 4));
 }
 
-function reachBrushDone() {
-  setActiveQuad(4);                       // mark all done
-  QUADRANTS.forEach(q => document.getElementById(q.id).classList.add("done"));
-  setMouth(5);                            // big smile
-  els.instruction.innerHTML = `Great job! Now <strong>rinse</strong> and finish up ✨`;
-  els.phase.textContent = "Almost done…";
-  els.ring.style.stroke = "#fb7185";
-  beepSwitch();
-  buzz(200);
+function enterSection(i, announce) {
+  spawnGerms(i);
+  currentSurface = -1;
+  if (announce) { cheerBuddy(); sectionBeep(); buzz([110, 50, 110]); }
 }
 
-function finish() {
-  state = "done";
-  clearInterval(ticker);
-  ticker = null;
-  currentQuad = 5;
-  celebrateFace();
-  launchConfetti();
-  fanfare();
-  buzz([100, 50, 100, 50, 250]);
-  els.instruction.innerHTML = `All sparkly clean! ⭐ <strong>Amazing!</strong>`;
-  els.phase.textContent = "Done!";
-  els.startBtn.textContent = "▶ Start";
-  releaseWake();
+function surfaceFor(sec) {
+  if (sec.type === "front") return Object.assign({ phase: 0 }, SURFACES.front);
+  const into = sec.secs - timeLeft;
+  const phase = into < sec.secs / 2 ? 0 : 1;
+  return Object.assign({ phase }, phase === 0 ? SURFACES.out : SURFACES.in);
 }
-
-function tick() {
-  const now = performance.now();
-  elapsed += (now - lastTs) / 1000;
-  lastTs = now;
-
-  if (elapsed >= TOTAL_SEC) { elapsed = TOTAL_SEC; render(); finish(); return; }
-  render();
+function updateSurface() {
+  if (!started || done || timeLeft == null) { els.surfaceCue.textContent = ""; return; }
+  const s = surfaceFor(SECTIONS[si]);
+  els.surfaceCue.textContent = `${s.icon} ${s.label} · ${s.hint}`;
+  if (s.phase !== currentSurface) {
+    if (currentSurface !== -1) surfaceTick(); // soft "move now" cue between passes
+    currentSurface = s.phase;
+  }
 }
 
 function render() {
-  els.clock.textContent = fmt(elapsed);
-  setRing(elapsed / BRUSH_SEC);
+  const mood = moodIndex();
+  els.status.textContent = !started ? "Ready" : done ? "Done!" : `${si + 1} of ${N_SECTIONS}`;
 
-  if (elapsed < BRUSH_SEC) {
-    const idx = Math.min(3, Math.floor(elapsed / QUADRANT_SEC));
-    if (idx !== currentQuad) enterQuad(idx);
-  } else if (currentQuad !== 4) {
-    reachBrushDone();
-    currentQuad = 4;
+  for (let q = 0; q < N_SECTIONS; q++) {
+    const active = started && !done && q === si;
+    const completed = done || (started && q < si);
+    dotEls[q].classList.toggle("active", active);
+    dotEls[q].classList.toggle("done", completed);
+    labelEls[q].classList.toggle("active", active);
+    labelEls[q].classList.toggle("done", completed);
+    teethBySection[q].forEach((t) => {
+      t.classList.toggle("active", active);
+      t.classList.toggle("done", completed);
+    });
   }
+
+  const arcVisible = started && !done;
+  els.arc.classList.toggle("show", arcVisible);
+  if (arcVisible) els.arc.style.transform = `rotate(${SECTIONS[si].center - 116}deg)`;
+
+  const frac = (started && !done && timeLeft != null) ? (timeLeft / curSecs()) : (done ? 0 : 1);
+  els.cdRing.style.strokeDashoffset = (CD_CIRC * (1 - frac)).toFixed(2);
+
+  els.face.classList.toggle("sad", mood === 0);
+  els.buddyBody.classList.toggle("excited", done);
+  els.mouth.setAttribute("d", MOUTHS[mood]);
+  els.mouth.setAttribute("fill", mood >= 4 ? "var(--mouth-excited)" : "transparent");
+  els.says.textContent = SAYS[mood];
+
+  updateSurface();
+
+  els.primary.textContent = !started ? "Start brushing" : done ? "Brush again" : running ? "Pause" : "Resume";
+}
+
+function tick() {
+  if (!running) return;
+  if (timeLeft > 1) { timeLeft -= 1; updateGerms(timeLeft, curSecs()); render(); return; }
+  if (si < N_SECTIONS - 1) {
+    si += 1;
+    timeLeft = curSecs();
+    enterSection(si, true);
+    render();
+    return;
+  }
+  finish();
+}
+
+function finish() {
+  clearInterval(ticker);
+  ticker = null;
+  running = false;
+  done = true;
+  si = N_SECTIONS;
+  timeLeft = 0;
+  clearGerms();
+  render();
+  cheerBuddy();
+  launchConfetti();
+  endSound();
+  buzz([90, 40, 90, 40, 220]);
+  releaseWake();
+  document.dispatchEvent(new CustomEvent("brush:complete", { detail: { sections: N_SECTIONS, seconds: 120 } }));
+}
+
+// ---- Confetti --------------------------------------------------------------
+function launchConfetti() {
+  els.confetti.innerHTML = "";
+  const n = calm ? 16 : 46;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < n; i++) {
+    const c = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    const size = 7 + Math.random() * 9;
+    const p = document.createElement("i");
+    p.style.left = Math.random() * 100 + "%";
+    p.style.width = size + "px";
+    p.style.height = size * 1.4 + "px";
+    p.style.background = c;
+    p.style.animationDuration = (calm ? 2.6 : 1.6) + Math.random() * 1.4 + "s";
+    p.style.animationDelay = (Math.random() * 0.8) + "s";
+    frag.appendChild(p);
+  }
+  els.confetti.appendChild(frag);
+  setTimeout(() => { if (done) els.confetti.innerHTML = ""; }, 4500);
 }
 
 // ---- Controls --------------------------------------------------------------
 function start() {
   ensureAudio();
   requestWake();
-  state = "running";
-  lastTs = performance.now();
-  ticker = setInterval(tick, 100);
-  els.startBtn.textContent = "⏸ Pause";
-  render();
-}
-function pause() {
-  state = "paused";
   clearInterval(ticker);
-  ticker = null;
-  els.startBtn.textContent = "▶ Resume";
-  els.phase.textContent = "Paused";
-  releaseWake();
+  started = true; running = true; done = false; si = 0; timeLeft = SECTIONS[0].secs;
+  els.confetti.innerHTML = "";
+  enterSection(0, false);
+  render();
+  ticker = setInterval(tick, 1000);
 }
-function resume() {
-  ensureAudio();
-  requestWake();
-  state = "running";
-  lastTs = performance.now();
-  ticker = setInterval(tick, 100);
-  els.startBtn.textContent = "⏸ Pause";
+function togglePause() {
+  running = !running;
+  if (running) { ensureAudio(); requestWake(); } else { releaseWake(); }
   render();
 }
 function reset() {
   clearInterval(ticker);
   ticker = null;
-  state = "idle";
-  elapsed = 0;
-  currentQuad = -1;
-  setActiveQuad(-1);
-  QUADRANTS.forEach(q => document.getElementById(q.id).classList.remove("done", "active"));
-  resetFace();
-  setRing(0);
-  els.ring.style.stroke = "";
+  started = false; running = false; done = false; si = 0; timeLeft = null;
+  currentSurface = -1;
+  clearGerms();
   els.confetti.innerHTML = "";
-  els.clock.textContent = "0:00";
-  els.phase.textContent = "Ready";
-  els.instruction.innerHTML = `Tap <strong>Start</strong> to begin brushing!`;
-  els.startBtn.textContent = "▶ Start";
+  render();
   releaseWake();
 }
 
-els.startBtn.addEventListener("click", () => {
-  if (state === "idle" || state === "done") { reset(); start(); }
-  else if (state === "running") pause();
-  else if (state === "paused") resume();
+els.primary.addEventListener("click", () => {
+  if (!started || done) start();
+  else togglePause();
 });
-els.resetBtn.addEventListener("click", reset);
+els.reset.addEventListener("click", reset);
 els.soundBtn.addEventListener("click", () => {
   soundOn = !soundOn;
   els.soundBtn.textContent = soundOn ? "🔊" : "🔇";
   if (soundOn) ensureAudio();
 });
+els.calmBtn.addEventListener("click", () => {
+  calm = !calm;
+  try { localStorage.setItem("brushBuddy.calm", calm ? "1" : "0"); } catch (e) {}
+  applyCalm();
+});
 
-// Re-acquire wake lock when tab becomes visible again mid-session.
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && state === "running") requestWake();
+  if (document.visibilityState === "visible" && running) requestWake();
 });
 
 // ---- Init ------------------------------------------------------------------
-buildTeeth();
+buildScene();
+applyCalm();
 reset();
 
 // ---- Service worker --------------------------------------------------------
