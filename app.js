@@ -406,8 +406,8 @@ function finish() {
 // no flight/flap.
 function clearFairy() { els.fairy.innerHTML = ""; }
 
-// Renderer is selectable so we can drop in a generated asset and compare it
-// against the built-in SVG: ?fairy=video|sprite|svg, or window.BrushFairy.set(..).
+// Finale renderer: the Veo "video" by default, with the built-in "svg" fairy as
+// the fallback (also used for reduced-motion). Override via ?fairy=svg|video.
 function fairyMode() {
   try {
     const p = new URLSearchParams(location.search).get("fairy");
@@ -417,9 +417,11 @@ function fairyMode() {
 }
 function launchFairy(forceMode) {
   clearFairy();
-  const mode = forceMode || fairyMode();
+  let mode = forceMode || fairyMode();
+  // reduced-motion users get the gentler vector fairy, not a full-screen video.
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (mode === "video" && reduced) mode = "svg";
   if (mode === "video") return launchFairyVideo();
-  if (mode === "sprite") return launchFairySprite();
   return launchFairySVG();
 }
 
@@ -440,41 +442,6 @@ function launchFairyVideo() {
   });
   els.fairy.appendChild(v);
   setTimeout(() => { if (!v.videoWidth) fallback(); }, 1500); // asset missing → SVG
-}
-
-// SPRITE: a horizontal strip of N frames of the fairy spinning/flapping. CSS
-// steps() cycles the frames (the spin); a vw/vh keyframe flies her in along a
-// loopy path. Frame count via ?frames=N or localStorage (default 8).
-function spriteFrames() {
-  try {
-    const p = new URLSearchParams(location.search).get("frames")
-      || localStorage.getItem("brushBuddy.fairyFrames") || "10";
-    return Math.max(2, parseInt(p, 10) || 10);
-  } catch (e) { return 10; }
-}
-function launchFairySprite() {
-  const FRAMES = spriteFrames();
-  const img = new Image();
-  img.onload = () => {
-    const dispH = 150;
-    const scale = dispH / img.naturalHeight;
-    const dispW = (img.naturalWidth / FRAMES) * scale;
-    const wrap = document.createElement("div");
-    wrap.className = "fairy-sprite-wrap";
-    const d = document.createElement("div");
-    d.className = "fairy-sprite";
-    d.style.width = dispW.toFixed(1) + "px";
-    d.style.height = dispH + "px";
-    d.style.backgroundImage = "url(fairy-sheet.png)";
-    d.style.backgroundSize = (dispW * FRAMES).toFixed(1) + "px " + dispH + "px";
-    d.style.setProperty("--shift", "-" + (dispW * FRAMES).toFixed(1) + "px");
-    d.style.setProperty("--steps", String(FRAMES));
-    d.style.setProperty("--fly", (calm ? "3.2s" : "2.6s"));
-    wrap.appendChild(d);
-    els.fairy.appendChild(wrap);
-  };
-  img.onerror = () => { clearFairy(); launchFairySVG(); };
-  img.src = "fairy-sheet.png";
 }
 
 function launchFairySVG() {
@@ -589,23 +556,11 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && running) requestWake();
 });
 
-// Switch fairy renderer at runtime (persists). e.g. BrushFairy.set("video").
+// Switch fairy renderer at runtime (persists). e.g. BrushFairy.set("svg").
 window.BrushFairy = {
   get: () => fairyMode(),
   set: (mode) => { try { localStorage.setItem("brushBuddy.fairy", mode); } catch (e) {} return mode; },
 };
-
-// TEMPORARY: jump straight to the "all clean" finale with a chosen fairy version
-// so the different renderers can be compared without brushing for 2 minutes.
-function previewFairy(mode) {
-  clearInterval(ticker); ticker = null;
-  started = true; running = false; done = true; si = N_SECTIONS; timeLeft = 0;
-  currentWindow = -1;
-  clearGerms();
-  render();
-  launchFairy(mode);
-}
-window.previewFairy = previewFairy;
 
 // ---- Init ------------------------------------------------------------------
 buildScene();
