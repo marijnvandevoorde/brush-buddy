@@ -1,0 +1,17 @@
+{
+  "name": "Brush Buddy",
+  "short_name": "Brush Buddy",
+  "description": "A friendly visual guide that walks you through brushing each quadrant of your teeth for two minutes.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2dd4bf",
+  "theme_color": "#2dd4bf",
+  "categories": ["health", "lifestyle", "kids"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

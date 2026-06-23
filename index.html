@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#2dd4bf" />
+  <title>Brush Buddy</title>
+  <meta name="description" content="A friendly visual guide that walks you through brushing each quadrant of your teeth for two minutes." />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/favicon.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Brush Buddy" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <h1 class="title">Brush&nbsp;Buddy</h1>
+      <button id="soundBtn" class="icon-btn" aria-label="Toggle sound" title="Toggle sound">🔊</button>
+    </header>
+
+    <p id="instruction" class="instruction">Tap <strong>Start</strong> to begin brushing!</p>
+
+    <!-- Mouth + smiley -->
+    <div class="stage">
+      <svg id="scene" viewBox="0 0 400 400" role="img" aria-label="Teeth diagram with a smiley face">
+        <!-- progress ring framing the face -->
+        <circle class="ring-bg" cx="200" cy="200" r="86" />
+        <circle id="ring" class="ring-fg" cx="200" cy="200" r="86"
+                transform="rotate(-90 200 200)" />
+
+        <!-- teeth quadrants are injected by JS into these groups -->
+        <g id="q-ur" class="quad"></g>
+        <g id="q-ul" class="quad"></g>
+        <g id="q-ll" class="quad"></g>
+        <g id="q-lr" class="quad"></g>
+
+        <!-- smiley face -->
+        <g id="face">
+          <circle class="face-bg" cx="200" cy="200" r="66" />
+          <!-- eyes: normal + star variants, toggled via class on #face -->
+          <g class="eyes-normal">
+            <circle class="eye" cx="178" cy="188" r="8" />
+            <circle class="eye" cx="222" cy="188" r="8" />
+          </g>
+          <g class="eyes-star">
+            <path class="star" d="M178,176 l3.4,7 7.6,1 -5.5,5.4 1.3,7.6 -6.8,-3.6 -6.8,3.6 1.3,-7.6 -5.5,-5.4 7.6,-1 z" />
+            <path class="star" d="M222,176 l3.4,7 7.6,1 -5.5,5.4 1.3,7.6 -6.8,-3.6 -6.8,3.6 1.3,-7.6 -5.5,-5.4 7.6,-1 z" />
+          </g>
+          <!-- mouth -->
+          <path id="mouth" class="mouth" d="M172,214 Q200,222 228,214" />
+        </g>
+      </svg>
+
+      <div id="confetti" class="confetti" aria-hidden="true"></div>
+    </div>
+
+    <!-- timer -->
+    <div class="timer">
+      <span id="clock" class="clock">0:00</span>
+      <span id="phase" class="phase">Ready</span>
+    </div>
+
+    <!-- controls -->
+    <div class="controls">
+      <button id="startBtn" class="btn btn-primary">▶ Start</button>
+      <button id="resetBtn" class="btn btn-ghost">↺ Reset</button>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
