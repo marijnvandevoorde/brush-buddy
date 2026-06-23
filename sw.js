@@ -1,5 +1,5 @@
 /* Brush Buddy service worker — offline-first caching. */
-const CACHE = "brush-buddy-v4";
+const CACHE = "brush-buddy-v5";
 const ASSETS = [
   ".",
   "index.html",

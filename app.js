@@ -219,30 +219,48 @@ function clearGerms() {
 
 // ---- Dirt on the tooth mascot (fades as it gets clean & happy) -------------
 // One smudge per section, scattered over the crown, so a smudge fades each time
-// a section is completed. Irregular border-radii (+ pseudo-element grains in CSS)
-// keep them looking like natural sandy dirt rather than perfect circles.
+// a section is completed. Every smudge is generated with a random blobby shape,
+// size, tint, rotation and a few scattered sand grains, so no two are alike.
 const DIRT = [
-  { l: 18, t: 26, s: 16, c: "#BE9A5E", r: "58% 42% 55% 45% / 50% 60% 40% 50%" },
-  { l: 60, t: 23, s: 13, c: "#C9A874", r: "45% 55% 48% 52% / 60% 45% 55% 40%" },
-  { l: 13, t: 50, s: 15, c: "#B0894C", r: "55% 45% 40% 60% / 45% 55% 50% 50%" },
-  { l: 66, t: 47, s: 14, c: "#C9A874", r: "48% 52% 58% 42% / 55% 48% 52% 45%" },
-  { l: 27, t: 65, s: 15, c: "#BE9A5E", r: "52% 48% 45% 55% / 48% 58% 42% 52%" },
-  { l: 55, t: 63, s: 12, c: "#B0894C", r: "50% 50% 55% 45% / 55% 45% 50% 50%" },
+  { l: 18, t: 26, s: 16 }, { l: 60, t: 23, s: 13 }, { l: 13, t: 50, s: 15 },
+  { l: 66, t: 47, s: 14 }, { l: 27, t: 65, s: 15 }, { l: 55, t: 63, s: 12 },
 ];
+const EARTH = ["#BE9A5E", "#C9A874", "#B0894C", "#B6884A", "#C4A06A", "#A87C42"];
+const rnd = (a, b) => a + Math.random() * (b - a);
+function blobRadius() {
+  const v = () => Math.round(rnd(34, 66));
+  return `${v()}% ${v()}% ${v()}% ${v()}% / ${v()}% ${v()}% ${v()}% ${v()}%`;
+}
 const dirtEls = [];
 function buildDirt() {
   const dirt = document.getElementById("dirt");
   DIRT.forEach((d, i) => {
+    const w = d.s + rnd(-3, 4);
+    const h = d.s * rnd(0.7, 0.95) + rnd(-2, 3);
     const sp = document.createElement("span");
     sp.className = "dirt-spot";
-    sp.style.left = d.l + "px";
-    sp.style.top = d.t + "px";
-    sp.style.width = d.s + "px";
-    sp.style.height = (d.s * 0.82).toFixed(1) + "px";
-    sp.style.background = d.c;
-    sp.style.borderRadius = d.r;
+    sp.style.left = (d.l + rnd(-3, 3)).toFixed(1) + "px";
+    sp.style.top = (d.t + rnd(-3, 3)).toFixed(1) + "px";
+    sp.style.width = w.toFixed(1) + "px";
+    sp.style.height = h.toFixed(1) + "px";
+    sp.style.background = EARTH[(Math.random() * EARTH.length) | 0];
+    sp.style.borderRadius = blobRadius();
     sp.style.boxShadow = "inset -1px -2px 1px rgba(0,0,0,0.16)";
+    sp.style.setProperty("--rot", Math.round(rnd(-35, 35)) + "deg");
     sp.style.transitionDelay = (i * 0.05).toFixed(2) + "s";
+    // a few random sand grains around the smudge
+    const grains = 2 + ((Math.random() * 2) | 0);
+    for (let g = 0; g < grains; g++) {
+      const gs = rnd(2, 5);
+      const gr = document.createElement("span");
+      gr.className = "dirt-grain";
+      gr.style.width = gs.toFixed(1) + "px";
+      gr.style.height = gs.toFixed(1) + "px";
+      gr.style.left = (rnd(-4, w - gs + 4)).toFixed(1) + "px";
+      gr.style.top = (rnd(-4, h - gs + 4)).toFixed(1) + "px";
+      gr.style.borderRadius = blobRadius();
+      sp.appendChild(gr);
+    }
     dirt.appendChild(sp);
     dirtEls.push(sp);
   });
@@ -375,36 +393,67 @@ function finish() {
 function clearFairy() { els.fairy.innerHTML = ""; }
 function launchFairy() {
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const flyDur = calm ? 3.0 : 2.2;
+  const flyDur = calm ? 3.2 : 2.6;
+  // loopy flight: swoop up from the lower-left, do a loop-the-loop, settle center
+  const flyPath = "M -80 800 C 130 560, 285 605, 250 455 C 226 360, 150 360, 178 452 C 198 524, 286 496, 250 412 C 232 362, 210 380, 195 360";
   const motion = reduced ? "" :
-    `<animateMotion dur="${flyDur}s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.22 0.1 0.25 1" path="M -70 770 C 150 560, 340 600, 195 358"/>` +
-    `<animateTransform attributeName="transform" additive="sum" type="translate" begin="${flyDur}s" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="0 0;0 -10;0 0"/>`;
-  const wingL = reduced ? "" : `<animateTransform attributeName="transform" type="rotate" values="0 -8 0;24 -8 0;0 -8 0" dur="0.28s" repeatCount="indefinite"/>`;
-  const wingR = reduced ? "" : `<animateTransform attributeName="transform" type="rotate" values="0 8 0;-24 8 0;0 8 0" dur="0.28s" repeatCount="indefinite"/>`;
-  const wandAnim = reduced ? "" : `<animateTransform attributeName="transform" type="rotate" begin="${flyDur}s" values="0 8 6;-20 8 6;0 8 6" dur="0.8s" repeatCount="indefinite"/>`;
-  const gOpen = reduced ? '<g transform="translate(195,358)">' : "<g>";
-  const dress = "#FF6FAE"; // candy pink dress
+    `<animateMotion id="fFly" begin="indefinite" dur="${flyDur}s" fill="freeze" calcMode="paced" path="${flyPath}"/>` +
+    `<animateTransform attributeName="transform" additive="sum" type="translate" begin="${flyDur}s" dur="2.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="0 0;0 -9;0 0"/>`;
+  const flap = (pivot, sign) => reduced ? "" :
+    `<animateTransform attributeName="transform" type="rotate" values="0 ${pivot} -4;${sign * 22} ${pivot} -4;0 ${pivot} -4" dur="0.25s" repeatCount="indefinite"/>`;
+  const wandAnim = reduced ? "" :
+    `<animateTransform attributeName="transform" type="rotate" begin="${flyDur}s" values="0 11 2;-22 11 2;0 11 2" dur="0.8s" repeatCount="indefinite"/>`;
+  const twinkle = (begin, dur) => reduced ? "" :
+    `<animateTransform attributeName="transform" type="scale" begin="${begin}" dur="${dur}" values="0.5;1.2;0.5" keyTimes="0;0.5;1" repeatCount="indefinite"/>`;
+  const gOpen = reduced ? '<g transform="translate(195,360)">' : "<g>";
+
+  const defs =
+    '<defs>' +
+      '<radialGradient id="fWing" cx="38%" cy="28%" r="80%">' +
+        '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.97"/>' +
+        '<stop offset="55%" stop-color="#d6e6ff" stop-opacity="0.72"/>' +
+        '<stop offset="100%" stop-color="#b79ced" stop-opacity="0.5"/>' +
+      '</radialGradient>' +
+      '<radialGradient id="fGlow" cx="50%" cy="50%" r="50%">' +
+        '<stop offset="0%" stop-color="#fff3b0" stop-opacity="0.95"/>' +
+        '<stop offset="100%" stop-color="#fff3b0" stop-opacity="0"/>' +
+      '</radialGradient>' +
+      '<radialGradient id="fHalo" cx="50%" cy="50%" r="50%">' +
+        '<stop offset="0%" stop-color="#ffdcec" stop-opacity="0.6"/>' +
+        '<stop offset="100%" stop-color="#ffdcec" stop-opacity="0"/>' +
+      '</radialGradient>' +
+    '</defs>';
+
+  const fairy = [
+    '<circle cx="0" cy="-8" r="50" fill="url(#fHalo)"/>',
+    `<g>${flap(-9, 1)}<ellipse cx="-32" cy="-20" rx="20" ry="31" fill="url(#fWing)" stroke="#fff" stroke-width="1.4"/><ellipse cx="-27" cy="10" rx="15" ry="22" fill="url(#fWing)" stroke="#fff" stroke-width="1.2"/></g>`,
+    `<g>${flap(9, -1)}<ellipse cx="32" cy="-20" rx="20" ry="31" fill="url(#fWing)" stroke="#fff" stroke-width="1.4"/><ellipse cx="27" cy="10" rx="15" ry="22" fill="url(#fWing)" stroke="#fff" stroke-width="1.2"/></g>`,
+    '<path d="M0 -2 C -11 -2 -17 6 -19 18 C -23 36 -21 48 0 50 C 21 48 23 36 19 18 C 17 6 11 -2 0 -2 Z" fill="#FF6FAE"/>',
+    '<path d="M-19 34 Q0 44 19 34 Q15 48 0 50 Q-15 48 -19 34 Z" fill="#ff96c4"/>',
+    '<rect x="-6" y="-12" width="12" height="16" rx="6" fill="#FDE0C4"/>',
+    '<line x1="4" y1="-4" x2="12" y2="2" stroke="#FDE0C4" stroke-width="4.4" stroke-linecap="round"/>',
+    '<circle cx="0" cy="-26" r="17" fill="#FDE0C4"/>',
+    '<circle cx="-9" cy="-21" r="3.4" fill="#ffb0c6" opacity="0.85"/><circle cx="9" cy="-21" r="3.4" fill="#ffb0c6" opacity="0.85"/>',
+    '<circle cx="-6" cy="-27" r="2.6" fill="#3a2a2a"/><circle cx="6" cy="-27" r="2.6" fill="#3a2a2a"/>',
+    '<circle cx="-5.1" cy="-28" r="0.9" fill="#fff"/><circle cx="6.9" cy="-28" r="0.9" fill="#fff"/>',
+    '<path d="M-5 -20 Q0 -15 5 -20" fill="none" stroke="#a85b48" stroke-width="1.7" stroke-linecap="round"/>',
+    '<path d="M-17 -28 Q-15 -45 0 -45 Q15 -45 17 -28 Q8 -37 0 -36 Q-8 -37 -17 -28 Z" fill="#8a4b2f"/>',
+    '<circle cx="0" cy="-44" r="6.5" fill="#8a4b2f"/>',
+    `<g>${wandAnim}<line x1="11" y1="2" x2="36" y2="-22" stroke="#caa05a" stroke-width="2.8" stroke-linecap="round"/><circle cx="38" cy="-24" r="13" fill="url(#fGlow)"/><path d="M38 -34 l3 6.4 7 0.9 -5.2 4.9 1.3 7 -6.1 -3.4 -6.1 3.4 1.3 -7 -5.2 -4.9 7 -0.9 z" fill="#FFD54A" stroke="#F4B400" stroke-width="0.8"/></g>`,
+    `<g transform="translate(-46,-34)"><g>${twinkle('0.2s','1.3s')}<text font-size="14">\u2728</text></g></g>`,
+    `<g transform="translate(44,18)"><g>${twinkle('0.6s','1.1s')}<text font-size="12">\u2728</text></g></g>`,
+    `<g transform="translate(-30,36)"><g>${twinkle('0.9s','1.5s')}<text font-size="10">\u2728</text></g></g>`,
+    `<g transform="translate(30,-46)"><g>${twinkle(flyDur + 's','1.2s')}<text font-size="13">\u2b50</text></g></g>`,
+  ].join("");
+
   els.fairy.innerHTML =
     '<svg class="fairy-svg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice">' +
-      gOpen + motion +
-        // wings (behind the body)
-        `<g><ellipse cx="-24" cy="-6" rx="19" ry="29" fill="rgba(150,200,255,0.6)" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"/>${wingL}</g>` +
-        `<g><ellipse cx="24" cy="-6" rx="19" ry="29" fill="rgba(150,200,255,0.6)" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"/>${wingR}</g>` +
-        // dress, neck, head, hair
-        `<path d="M0 4 L-20 46 Q0 56 20 46 Z" fill="${dress}"/>` +
-        '<rect x="-5" y="-8" width="10" height="18" rx="5" fill="#FCD9B8"/>' +
-        '<circle cx="0" cy="-20" r="14" fill="#FCD9B8"/>' +
-        '<path d="M-14 -22 Q-12 -36 0 -36 Q12 -36 14 -22 Q6 -30 0 -29 Q-6 -30 -14 -22 Z" fill="#7B4B2A"/>' +
-        // face
-        '<circle cx="-5" cy="-20" r="1.8" fill="#2A2A2A"/><circle cx="5" cy="-20" r="1.8" fill="#2A2A2A"/>' +
-        '<path d="M-5 -14 Q0 -10 5 -14" fill="none" stroke="#2A2A2A" stroke-width="1.6" stroke-linecap="round"/>' +
-        // arm + wand with a star
-        `<g><line x1="8" y1="6" x2="30" y2="-18" stroke="#C68A3A" stroke-width="2.4" stroke-linecap="round"/><text x="33" y="-15" font-size="20" text-anchor="middle">⭐</text>${wandAnim}</g>` +
-        // sparkle trail
-        '<text x="-44" y="-34" font-size="14" opacity="0.9">✨</text>' +
-        '<text x="42" y="22" font-size="12" opacity="0.85">✨</text>' +
-      "</g>" +
-    "</svg>";
+      defs + gOpen + motion + '<g transform="scale(1.18)">' + fairy + '</g></g>' +
+    '</svg>';
+  // SMIL begin is on the document timeline, so a fairy inserted late would skip
+  // its fly-in. Kick the motion off from "now" so she actually flies in + loops.
+  const fly = els.fairy.querySelector("#fFly");
+  if (fly && fly.beginElement) { try { fly.beginElement(); } catch (e) {} }
 }
 
 // ---- Controls --------------------------------------------------------------

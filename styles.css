@@ -171,17 +171,16 @@ body {
 .dirt-spot {
   position: absolute;
   opacity: .9;
+  transform: rotate(var(--rot, 0deg));
   transition: opacity .7s ease, transform .7s ease;
 }
-/* the main smudge + two little sand grains (pseudo-elements) for an organic look */
-.dirt-spot::before, .dirt-spot::after {
-  content: ""; position: absolute;
-  background: inherit; border-radius: 50%;
+/* scattered sand grains (child spans, randomly placed in JS) */
+.dirt-grain {
+  position: absolute;
+  background: inherit;
   box-shadow: inset -1px -1px 1px rgba(0,0,0,0.18);
 }
-.dirt-spot::before { width: 38%; height: 34%; top: -16%; left: 8%; }
-.dirt-spot::after  { width: 28%; height: 26%; bottom: -12%; right: 6%; }
-.dirt-spot.clean { opacity: 0; transform: scale(0.25) rotate(20deg); }
+.dirt-spot.clean { opacity: 0; transform: scale(0.2) rotate(var(--rot, 0deg)); }
 .buddy-body.cheer { animation: tbb-cheer .6s ease; }
 
 .face {
