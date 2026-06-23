@@ -100,7 +100,8 @@ body {
   margin: -12.5px 0 0 -8px;
   background: #fff;
   border: 2.5px solid rgba(0,0,0,0.10);
-  border-radius: 8px 8px 5px 5px;
+  /* organic little-tooth silhouette (rounded crown, slightly tapered root) */
+  border-radius: 46% 46% 38% 38% / 56% 56% 44% 44%;
   box-shadow: 0 2px 5px rgba(0,0,0,0.12);
   transition: border-color .3s ease;
 }
@@ -156,40 +157,38 @@ body {
   width: 104px; height: 116px;
   animation: tbb-float 3s ease-in-out infinite;
 }
-/* tooth-shaped mascot */
-.buddy-body::before {
-  content: "";
+/* cartoon molar mascot (rounded crown + two little roots) */
+.tooth-svg {
   position: absolute; inset: 0;
-  background: #fff;
-  border-radius: 46% 46% 40% 40% / 56% 56% 46% 46%;
-  box-shadow: inset -8px -10px 0 rgba(0,0,0,0.05), 0 10px 22px rgba(0,0,0,0.13);
+  width: 100%; height: 100%;
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,0.14));
+  z-index: 0;
 }
-/* bg-colored notch carves the bottom into two little roots */
-.tooth-notch {
-  position: absolute; z-index: 1;
-  bottom: -2px; left: 50%;
-  width: 24px; height: 30px;
-  background: var(--bg);
-  border-radius: 0 0 60% 60%;
-  transform: translateX(-50%);
-}
-/* sandy dirt spots that fade away as the tooth gets clean */
+.tooth-shape { fill: #fff; }
+
+/* sandy dirt smudges that fade away as the tooth gets clean */
 .dirt { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .dirt-spot {
   position: absolute;
-  background: #C2A269;
-  border-radius: 50% 50% 48% 52% / 55% 50% 50% 45%;
-  box-shadow: inset -1px -2px 0 rgba(0,0,0,0.14);
-  opacity: .92;
+  opacity: .9;
   transition: opacity .7s ease, transform .7s ease;
 }
-.dirt-spot.clean { opacity: 0; transform: scale(0.3) rotate(15deg); }
+/* the main smudge + two little sand grains (pseudo-elements) for an organic look */
+.dirt-spot::before, .dirt-spot::after {
+  content: ""; position: absolute;
+  background: inherit; border-radius: 50%;
+  box-shadow: inset -1px -1px 1px rgba(0,0,0,0.18);
+}
+.dirt-spot::before { width: 38%; height: 34%; top: -16%; left: 8%; }
+.dirt-spot::after  { width: 28%; height: 26%; bottom: -12%; right: 6%; }
+.dirt-spot.clean { opacity: 0; transform: scale(0.25) rotate(20deg); }
 .buddy-body.cheer { animation: tbb-cheer .6s ease; }
 
 .face {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 7px;
+  padding-bottom: 26px; /* sit the face on the crown, above the roots */
   z-index: 2;
 }
 .eyes { display: flex; gap: 20px; }

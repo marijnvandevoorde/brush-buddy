@@ -22,6 +22,13 @@ const N_SECTIONS = SECTIONS.length;
 const RING_R = 118;
 const TEETH_SPAN = 44;      // angular spread of a section's teeth (deg)
 const ARC_SPAN_DEG = 52;    // highlight arc a touch wider than the teeth
+// a few organic crown silhouettes, cycled per tooth so the ring isn't stamped
+const TOOTH_SHAPES = [
+  "46% 46% 38% 38% / 56% 56% 44% 44%",
+  "48% 44% 40% 36% / 58% 54% 46% 42%",
+  "44% 48% 36% 40% / 54% 58% 42% 46%",
+  "47% 45% 39% 37% / 57% 55% 43% 45%",
+];
 
 // Germs vanish surface-by-surface to nudge focus (outside → top → inside) without
 // hard-splitting the timer. Each surface's germs sit at a different spot on the
@@ -80,6 +87,9 @@ function buildScene() {
       anchor.style.transform = `rotate(${ang.toFixed(2)}deg) translateY(-${RING_R}px)`;
       const tooth = document.createElement("div");
       tooth.className = "tooth";
+      // slight per-tooth variation so the ring looks natural, not stamped
+      tooth.style.borderRadius = TOOTH_SHAPES[(k + si) % TOOTH_SHAPES.length];
+      tooth.style.height = (24 + ((k * 7 + si * 3) % 4)) + "px";
       anchor.appendChild(tooth);
       teethFrag.appendChild(anchor);
       arr.push(tooth);
@@ -208,14 +218,16 @@ function clearGerms() {
 }
 
 // ---- Dirt on the tooth mascot (fades as it gets clean & happy) -------------
-// One spot per section, so a spot fades each time a section is completed.
+// One smudge per section, scattered over the crown, so a smudge fades each time
+// a section is completed. Irregular border-radii (+ pseudo-element grains in CSS)
+// keep them looking like natural sandy dirt rather than perfect circles.
 const DIRT = [
-  { l: 18, t: 26, s: 17, c: "#C2A269" },
-  { l: 58, t: 22, s: 13, c: "#B79055" },
-  { l: 33, t: 50, s: 19, c: "#CBA977" },
-  { l: 64, t: 56, s: 12, c: "#B79055" },
-  { l: 24, t: 73, s: 15, c: "#C2A269" },
-  { l: 52, t: 80, s: 11, c: "#CBA977" },
+  { l: 18, t: 26, s: 16, c: "#BE9A5E", r: "58% 42% 55% 45% / 50% 60% 40% 50%" },
+  { l: 60, t: 23, s: 13, c: "#C9A874", r: "45% 55% 48% 52% / 60% 45% 55% 40%" },
+  { l: 13, t: 50, s: 15, c: "#B0894C", r: "55% 45% 40% 60% / 45% 55% 50% 50%" },
+  { l: 66, t: 47, s: 14, c: "#C9A874", r: "48% 52% 58% 42% / 55% 48% 52% 45%" },
+  { l: 27, t: 65, s: 15, c: "#BE9A5E", r: "52% 48% 45% 55% / 48% 58% 42% 52%" },
+  { l: 55, t: 63, s: 12, c: "#B0894C", r: "50% 50% 55% 45% / 55% 45% 50% 50%" },
 ];
 const dirtEls = [];
 function buildDirt() {
@@ -226,8 +238,10 @@ function buildDirt() {
     sp.style.left = d.l + "px";
     sp.style.top = d.t + "px";
     sp.style.width = d.s + "px";
-    sp.style.height = (d.s * 0.85).toFixed(1) + "px";
+    sp.style.height = (d.s * 0.82).toFixed(1) + "px";
     sp.style.background = d.c;
+    sp.style.borderRadius = d.r;
+    sp.style.boxShadow = "inset -1px -2px 1px rgba(0,0,0,0.16)";
     sp.style.transitionDelay = (i * 0.05).toFixed(2) + "s";
     dirt.appendChild(sp);
     dirtEls.push(sp);
