@@ -430,13 +430,14 @@ function launchFairyVideo() {
   v.className = "fairy-video";
   v.muted = true; v.autoplay = true; v.playsInline = true;
   v.setAttribute("playsinline", "");
-  v.innerHTML =
-    '<source src="fairy.webm" type="video/webm">' +
-    '<source src="fairy.mp4" type="video/mp4">';
+  v.innerHTML = '<source src="fairy.mp4" type="video/mp4">';
   let fell = false;
   const fallback = () => { if (!fell) { fell = true; clearFairy(); launchFairySVG(); } };
   v.addEventListener("error", fallback, { once: true });
-  v.addEventListener("loadeddata", () => { if (v.play) v.play().catch(() => {}); });
+  v.addEventListener("loadeddata", () => {
+    if (v.play) v.play().catch(() => {});
+    requestAnimationFrame(() => v.classList.add("show")); // smooth opacity fade-in
+  });
   els.fairy.appendChild(v);
   setTimeout(() => { if (!v.videoWidth) fallback(); }, 1500); // asset missing → SVG
 }
