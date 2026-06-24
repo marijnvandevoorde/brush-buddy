@@ -56,8 +56,105 @@ const MOUTHS = [
   "M20 26 Q50 46 80 26",   // 3 smile
   "M18 23 Q50 53 82 23 Z", // 4 big open
 ];
-const SAYS = ["Ready? Let's brush!", "Nice! Keep going →", "Great brushing!", "Almost sparkling!", "All clean! 🎉"];
 const CONFETTI_COLORS = ["#F4C430", "#FF6FAE", "#54C7E8", "#7FCF6E", "#B79CED", "#2D7DD2"];
+
+// ---- i18n ------------------------------------------------------------------
+// All user-facing copy lives here, keyed by language. The chosen language is
+// saved on-device (localStorage) and exposed on window.BrushI18n so streaks.js
+// (a separate module) can share it. SECTIONS/THEMES/HEROES keep stable `key`s;
+// their display labels are looked up here so they translate without touching
+// the data/geometry.
+const I18N = {
+  en: {
+    langName: "English",
+    settings: "Settings",
+    close: "Close",
+    language: "Language",
+    colour: "Colour",
+    buddy: "Buddy",
+    sound: "Toggle sound",
+    calmToggle: "Toggle calm mode",
+    calmOn: "Calm mode on",
+    calmOff: "Calm mode off",
+    buddyImg: "Brushing buddy",
+    ready: "Ready",
+    done: "Done!",
+    sectionOf: (a, b) => `${a} of ${b}`,
+    start: "Start brushing",
+    again: "Brush again",
+    pause: "Pause",
+    resume: "Resume",
+    startOver: "Start over",
+    says: ["Ready? Let's brush!", "Nice! Keep going →", "Great brushing!", "Almost sparkling!", "All clean! 🎉"],
+    sections: { UR: "Top Right", UF: "Top Front", UL: "Top Left", LL: "Bottom Left", LR: "Bottom Right", LF: "Bottom Front" },
+    surf: { out: { label: "Outsides", hint: "tiny gentle circles" }, top: { label: "Chewing tops", hint: "gentle back & forth" }, in: { label: "Insides", hint: "tiny gentle circles" } },
+    frontTeeth: "Front teeth",
+    insideFront: "Inside front",
+    brushUpDown: "brush up & down",
+    colourOf: (n) => "Colour: " + n,
+    buddyOf: (n) => "Buddy: " + n,
+    themes: { candy: "Candy", rosewater: "Rosewater", "peach-blossom": "Peach", rocket: "Rocket", dino: "Dino", ocean: "Ocean", sunshine: "Sunshine", "mint-coral": "Mint", bright: "Bright" },
+    heroes: { fairy: "Fairy", "girl-dentist": "Girl Dentist", "boy-dentist": "Boy Dentist", "girl-super": "Girl Hero", "boy-super": "Boy Hero" },
+    // streak pill (used by streaks.js)
+    oneDay: "1 day",
+    nDays: (n) => `${n} days`,
+    todayDone: "✓ today",
+    brushToday: "brush today!",
+    startAgain: "Let's start again",
+    best: (n) => `best: ${n}`,
+    newStreak: "New!",
+    firstBrush: "first brush today",
+  },
+  nl: {
+    langName: "Nederlands",
+    settings: "Instellingen",
+    close: "Sluiten",
+    language: "Taal",
+    colour: "Kleur",
+    buddy: "Maatje",
+    sound: "Geluid aan/uit",
+    calmToggle: "Rustmodus aan/uit",
+    calmOn: "Rustmodus aan",
+    calmOff: "Rustmodus uit",
+    buddyImg: "Poetsmaatje",
+    ready: "Gereed",
+    done: "Klaar!",
+    sectionOf: (a, b) => `${a} van ${b}`,
+    start: "Begin met poetsen",
+    again: "Opnieuw poetsen",
+    pause: "Pauze",
+    resume: "Verder",
+    startOver: "Opnieuw beginnen",
+    says: ["Klaar? We gaan poetsen!", "Goed zo! Ga door →", "Lekker poetsen!", "Bijna glanzend!", "Helemaal schoon! 🎉"],
+    sections: { UR: "Rechtsboven", UF: "Vooraan boven", UL: "Linksboven", LL: "Linksonder", LR: "Rechtsonder", LF: "Vooraan onder" },
+    surf: { out: { label: "Buitenkant", hint: "kleine zachte rondjes" }, top: { label: "Kauwvlakken", hint: "zachtjes heen en weer" }, in: { label: "Binnenkant", hint: "kleine zachte rondjes" } },
+    frontTeeth: "Voortanden",
+    insideFront: "Binnenkant voor",
+    brushUpDown: "poets op en neer",
+    colourOf: (n) => "Kleur: " + n,
+    buddyOf: (n) => "Maatje: " + n,
+    themes: { candy: "Snoep", rosewater: "Rozenwater", "peach-blossom": "Perzik", rocket: "Raket", dino: "Dino", ocean: "Oceaan", sunshine: "Zonneschijn", "mint-coral": "Munt", bright: "Helder" },
+    heroes: { fairy: "Fee", "girl-dentist": "Tandarts (meisje)", "boy-dentist": "Tandarts (jongen)", "girl-super": "Held (meisje)", "boy-super": "Held (jongen)" },
+    oneDay: "1 dag",
+    nDays: (n) => `${n} dagen`,
+    todayDone: "✓ vandaag",
+    brushToday: "poets vandaag!",
+    startAgain: "Opnieuw beginnen",
+    best: (n) => `beste: ${n}`,
+    newStreak: "Nieuw!",
+    firstBrush: "eerste keer vandaag",
+  },
+};
+const LANGS = ["en", "nl"];
+function defaultLang() {
+  try { return (navigator.language || "").toLowerCase().indexOf("nl") === 0 ? "nl" : "en"; } catch (e) { return "en"; }
+}
+let lang = "en";
+try { lang = localStorage.getItem("brushBuddy.lang") || defaultLang(); } catch (e) {}
+if (LANGS.indexOf(lang) < 0) lang = "en";
+function t() { return I18N[lang] || I18N.en; }
+// Shared with streaks.js (loaded after this file).
+window.BrushI18n = { t: t, lang: function () { return lang; } };
 
 // ---- Elements --------------------------------------------------------------
 const els = {
@@ -122,7 +219,7 @@ function buildScene() {
     const y = 160 - 150 * Math.cos(rad);
     const lab = document.createElement("div");
     lab.className = "qlabel";
-    lab.textContent = sec.label;
+    lab.textContent = t().sections[sec.key];
     lab.style.left = x.toFixed(1) + "px";
     lab.style.top = y.toFixed(1) + "px";
     els.labels.appendChild(lab);
@@ -145,7 +242,7 @@ function applyCalm() {
   els.app.setAttribute("data-calm", calm ? "true" : "false");
   els.calmBtn.textContent = calm ? "🌙" : "☀️";
   els.calmBtn.setAttribute("aria-pressed", String(calm));
-  els.calmBtn.title = calm ? "Calm mode on" : "Calm mode off";
+  els.calmBtn.title = calm ? t().calmOn : t().calmOff;
 }
 
 // ---- Sound (Web Audio, no assets) -----------------------------------------
@@ -320,11 +417,12 @@ function enterSection(i, announce) {
 // single countdown ring keeps running (no hard 18-way split); germs simply move
 // outside → top → inside and vanish as the child scrubs.
 function surfaceLabel(sec, surfKey) {
+  const d = t();
   const s = SURF[surfKey];
   if (sec.type === "front") {
-    return `${surfKey === "in" ? "↕️" : "🦷"} ${surfKey === "in" ? "Inside front" : "Front teeth"} · brush up & down`;
+    return `${surfKey === "in" ? "↕️" : "🦷"} ${surfKey === "in" ? d.insideFront : d.frontTeeth} · ${d.brushUpDown}`;
   }
-  return `${s.icon} ${s.label} · ${s.hint}`;
+  return `${s.icon} ${d.surf[surfKey].label} · ${d.surf[surfKey].hint}`;
 }
 function updateBrushing() {
   if (!started || done || timeLeft == null) { els.surfaceCue.textContent = ""; currentWindow = -1; return; }
@@ -347,7 +445,7 @@ function updateBrushing() {
 
 function render() {
   const mood = moodIndex();
-  els.status.textContent = !started ? "Ready" : done ? "Done!" : `${si + 1} of ${N_SECTIONS}`;
+  els.status.textContent = !started ? t().ready : done ? t().done : t().sectionOf(si + 1, N_SECTIONS);
 
   for (let q = 0; q < N_SECTIONS; q++) {
     const active = started && !done && q === si;
@@ -373,12 +471,12 @@ function render() {
   els.buddyBody.classList.toggle("excited", done);
   els.mouth.setAttribute("d", MOUTHS[mood]);
   els.mouth.setAttribute("fill", mood >= 4 ? "var(--mouth-excited)" : "transparent");
-  els.says.textContent = SAYS[mood];
+  els.says.textContent = t().says[mood];
 
   updateDirt();
   updateBrushing();
 
-  els.primary.textContent = !started ? "Start brushing" : done ? "Brush again" : running ? "Pause" : "Resume";
+  els.primary.textContent = !started ? t().start : done ? t().again : running ? t().pause : t().resume;
 }
 
 function tick() {
@@ -606,15 +704,31 @@ function applyHero(key) {
 }
 
 function buildSettings() {
-  const tg = document.getElementById("themeGrid");
-  THEMES.forEach((t) => {
+  // Rebuilt whenever the language changes, so labels/aria re-translate while the
+  // current theme/hero/language selection is re-derived from saved state.
+  const lg = document.getElementById("langGrid");
+  lg.innerHTML = "";
+  LANGS.forEach((code) => {
     const b = document.createElement("button");
-    b.className = "swatch" + (t.key === currentTheme() ? " sel" : "");
-    b.title = t.label;
-    b.setAttribute("aria-label", "Colour: " + t.label);
-    b.innerHTML = `<i style="background:${t.bg}"></i><b style="background:${t.accent}"></b>`;
+    b.className = "lang-pick" + (code === lang ? " sel" : "");
+    b.setAttribute("lang", code);
+    b.textContent = I18N[code].langName;
+    b.setAttribute("aria-label", I18N[code].langName);
+    b.addEventListener("click", () => { if (code !== lang) setLang(code); });
+    lg.appendChild(b);
+  });
+
+  const tg = document.getElementById("themeGrid");
+  tg.innerHTML = "";
+  THEMES.forEach((th) => {
+    const name = t().themes[th.key] || th.label;
+    const b = document.createElement("button");
+    b.className = "swatch" + (th.key === currentTheme() ? " sel" : "");
+    b.title = name;
+    b.setAttribute("aria-label", t().colourOf(name));
+    b.innerHTML = `<i style="background:${th.bg}"></i><b style="background:${th.accent}"></b>`;
     b.addEventListener("click", () => {
-      applyTheme(t.key);
+      applyTheme(th.key);
       tg.querySelectorAll(".swatch").forEach((s) => s.classList.remove("sel"));
       b.classList.add("sel");
     });
@@ -622,11 +736,13 @@ function buildSettings() {
   });
 
   const hg = document.getElementById("heroGrid");
+  hg.innerHTML = "";
   HEROES.forEach((h) => {
+    const name = t().heroes[h.key] || h.label;
     const b = document.createElement("button");
     b.className = "hero-pick" + (h.key === currentHero() ? " sel" : "");
-    b.setAttribute("aria-label", "Buddy: " + h.label);
-    b.innerHTML = `<img src="hero-${h.key}.png" alt="" /><span>${h.label}</span>`;
+    b.setAttribute("aria-label", t().buddyOf(name));
+    b.innerHTML = `<img src="hero-${h.key}.png" alt="" /><span>${name}</span>`;
     b.addEventListener("click", () => {
       applyHero(h.key);
       hg.querySelectorAll(".hero-pick").forEach((s) => s.classList.remove("sel"));
@@ -636,6 +752,36 @@ function buildSettings() {
     });
     hg.appendChild(b);
   });
+}
+
+// Apply the current language to all static chrome (header buttons, settings
+// headings, ring labels, reset button), then re-render the dynamic copy.
+function applyI18n() {
+  const d = t();
+  document.documentElement.lang = lang;
+  const setText = (id, s) => { const el = document.getElementById(id); if (el) el.textContent = s; };
+  if (els.settingsBtn) { els.settingsBtn.setAttribute("aria-label", d.settings); els.settingsBtn.title = d.settings; }
+  els.soundBtn.setAttribute("aria-label", d.sound); els.soundBtn.title = d.sound;
+  els.calmBtn.setAttribute("aria-label", d.calmToggle);
+  setText("settingsTitle", d.settings);
+  setText("langHead", d.language);
+  setText("colourHead", d.colour);
+  setText("buddyHead", d.buddy);
+  const xClose = document.getElementById("settingsClose");
+  if (xClose) xClose.setAttribute("aria-label", d.close);
+  els.buddyBody.setAttribute("aria-label", d.buddyImg);
+  els.reset.textContent = d.startOver;
+  labelEls.forEach((lab, i) => { lab.textContent = d.sections[SECTIONS[i].key]; });
+  applyCalm();  // refresh the calm-button title in the new language
+  render();     // status, says, primary button, surface cue
+}
+
+function setLang(key) {
+  lang = (LANGS.indexOf(key) >= 0) ? key : "en";
+  try { localStorage.setItem("brushBuddy.lang", lang); } catch (e) {}
+  buildSettings();  // re-translate theme/hero/language labels, keep selections
+  applyI18n();
+  document.dispatchEvent(new CustomEvent("brush:langchange"));
 }
 
 const settingsEl = document.getElementById("settings");
@@ -651,7 +797,7 @@ buildScene();
 buildDirt();
 applyTheme(currentTheme());
 buildSettings();
-applyCalm();
+applyI18n();
 reset();
 
 // ---- Service worker --------------------------------------------------------

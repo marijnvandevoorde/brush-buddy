@@ -340,6 +340,14 @@ body {
   content: "✓"; position: absolute; top: 4px; left: 6px;
   font-size: 12px; font-weight: 900; color: rgba(0,0,0,0.5);
 }
+.lang-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.lang-pick {
+  cursor: pointer; border: none; background: rgba(0,0,0,0.04);
+  border-radius: 14px; padding: 11px 8px;
+  font: 700 14px/1.1 'Baloo 2', cursive; color: var(--text);
+}
+.lang-pick.sel { background: color-mix(in srgb, var(--accent) 22%, #fff); box-shadow: 0 0 0 2px var(--accent); }
+
 .hero-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .hero-pick {
   cursor: pointer; border: none; background: rgba(0,0,0,0.04);

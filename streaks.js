@@ -19,6 +19,16 @@
   const KEY = "brushBuddy.streaks.v1";
   const today = () => L.dayKey(new Date());
 
+  // Pull copy from the shared i18n layer (app.js → window.BrushI18n). Falls back
+  // to English if app.js hasn't defined it (e.g. loaded standalone).
+  const I18N_FALLBACK = {
+    oneDay: "1 day", nDays: (n) => `${n} days`, todayDone: "✓ today", brushToday: "brush today!",
+    startAgain: "Let's start again", best: (n) => `best: ${n}`, newStreak: "New!", firstBrush: "first brush today",
+  };
+  function tr() {
+    return (window.BrushI18n && window.BrushI18n.t && window.BrushI18n.t()) || I18N_FALLBACK;
+  }
+
   // ---- Persistence ----------------------------------------------------------
   function load() {
     try {
@@ -100,16 +110,17 @@
     const asleep = live === 0 && state.best > 0;
     pill.classList.toggle("is-asleep", asleep);
 
+    const d = tr();
     if (live > 0) {
-      countEl.textContent = live === 1 ? "1 day" : `${live} days`;
-      hintEl.textContent = gap === 0 ? "✓ today" : "brush today!";
+      countEl.textContent = live === 1 ? d.oneDay : d.nDays(live);
+      hintEl.textContent = gap === 0 ? d.todayDone : d.brushToday;
     } else if (asleep) {
       // Gentle "jump back in" framing — never a shaming "0 / you failed".
-      countEl.textContent = "Let's start again";
-      hintEl.textContent = `best: ${state.best}`;
+      countEl.textContent = d.startAgain;
+      hintEl.textContent = d.best(state.best);
     } else {
-      countEl.textContent = "New!";
-      hintEl.textContent = "first brush today";
+      countEl.textContent = d.newStreak;
+      hintEl.textContent = d.firstBrush;
     }
     starsEl.textContent = state.stars > 0 ? `· ⭐ ${state.stars}` : "";
   }
@@ -128,6 +139,9 @@
     render();
     celebrate();
   });
+
+  // Re-render the pill when the language changes (dispatched by app.js).
+  document.addEventListener("brush:langchange", function () { if (pill) render(); });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", mount);
