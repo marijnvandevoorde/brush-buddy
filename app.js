@@ -204,14 +204,25 @@ function cheerBuddy() {
 let activeGerms = [];
 let germWindowTotal = 0;
 let currentWindow = -1;
+const GERM_SIZE = 12;
 function spawnGermsForSurface(sectionIdx, surfKey) {
   clearGerms();
-  const baseTop = SURF[surfKey].top;
   teethBySection[sectionIdx].forEach((tooth) => {
+    // Each ring tooth points radially outward: its top edge is the OUTER (cheek)
+    // tip and its bottom edge is the INNER (tongue) end. Position germs relative
+    // to the tooth's own size so "outside/top/inside" land correctly on every
+    // tooth shape (incisor / canine / molar).
+    const w = parseFloat(tooth.style.width) || 16;
+    const h = parseFloat(tooth.style.height) || 24;
+    let top;
+    if (surfKey === "out") top = -1;                 // outer tip (cheek side)
+    else if (surfKey === "in") top = h - GERM_SIZE + 1; // inner end (tongue side)
+    else top = (h - GERM_SIZE) / 2;                  // chewing surface (middle)
+    const left = (w - GERM_SIZE) / 2;
     const germ = document.createElement("span");
     germ.className = "germ";
-    germ.style.left = (2 + (Math.random() * 1.5 - 0.75)).toFixed(1) + "px";
-    germ.style.top = (baseTop + (Math.random() * 1.5 - 0.75)).toFixed(1) + "px";
+    germ.style.left = (left + (Math.random() * 1.2 - 0.6)).toFixed(1) + "px";
+    germ.style.top = (top + (Math.random() * 1.2 - 0.6)).toFixed(1) + "px";
     germ.style.animationDelay = (Math.random() * 1.2).toFixed(2) + "s";
     tooth.appendChild(germ);
     activeGerms.push(germ);
