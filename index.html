@@ -23,12 +23,13 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="app" id="app" data-theme="candy">
+  <main class="app" id="app">
     <!-- Header -->
     <header class="hdr">
       <div class="hdr-row">
         <h1 class="title">Brush Buddy</h1>
         <div class="hdr-right">
+          <button id="settingsBtn" class="sound-btn" aria-label="Settings" title="Settings">⚙️</button>
           <button id="calmBtn" class="sound-btn" aria-label="Toggle calm mode" aria-pressed="false" title="Calm mode">☀️</button>
           <button id="soundBtn" class="sound-btn" aria-label="Toggle sound" title="Toggle sound">🔊</button>
           <span id="status" class="status">Ready</span>
@@ -97,8 +98,22 @@
       <button id="reset" class="btn-text">Start over</button>
     </div>
 
-    <!-- tooth-fairy finale -->
+    <!-- hero finale overlay -->
     <div id="fairyLayer" class="fairy-layer" aria-hidden="true"></div>
+
+    <!-- settings: colour scheme + hero picker -->
+    <div id="settings" class="settings" hidden>
+      <div class="settings-card" role="dialog" aria-label="Settings">
+        <div class="settings-head">
+          <h2>Settings</h2>
+          <button id="settingsClose" class="settings-x" aria-label="Close">✕</button>
+        </div>
+        <h3>Colour</h3>
+        <div id="themeGrid" class="theme-grid"></div>
+        <h3>Buddy</h3>
+        <div id="heroGrid" class="hero-grid"></div>
+      </div>
+    </div>
   </main>
 
   <script src="streak-logic.js"></script>

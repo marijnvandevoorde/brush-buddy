@@ -1,5 +1,5 @@
 /* Brush Buddy service worker — offline-first caching. */
-const CACHE = "brush-buddy-v8";
+const CACHE = "brush-buddy-v9";
 const ASSETS = [
   ".",
   "index.html",
@@ -14,8 +14,11 @@ const ASSETS = [
   "icons/icon-512.png",
   "icons/icon-maskable-512.png",
 ];
-// Optional fairy video — cached if present; a missing file must NOT fail install.
-const OPTIONAL = ["fairy.mp4"];
+// Optional hero clips + thumbnails — cached if present; missing must NOT fail install.
+const OPTIONAL = [
+  "hero-fairy.webm", "hero-girl-dentist.webm", "hero-boy-dentist.webm", "hero-girl-super.webm", "hero-boy-super.webm",
+  "hero-fairy.png", "hero-girl-dentist.png", "hero-boy-dentist.png", "hero-girl-super.png", "hero-boy-super.png",
+];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

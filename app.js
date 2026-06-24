@@ -406,43 +406,41 @@ function finish() {
 // no flight/flap.
 function clearFairy() { els.fairy.innerHTML = ""; }
 
-// Finale renderer: the Veo "video" by default, with the built-in "svg" fairy as
-// the fallback (also used for reduced-motion). Override via ?fairy=svg|video.
-function fairyMode() {
-  try {
-    const p = new URLSearchParams(location.search).get("fairy");
-    if (p) return p;
-    return localStorage.getItem("brushBuddy.fairy") || "video"; // default to the Veo video
-  } catch (e) { return "svg"; }
-}
-function launchFairy(forceMode) {
+// Finale: the chosen hero's transparent (alpha) clip floats over the done scene,
+// so it works with any colour scheme. Falls back to the built-in SVG fairy if the
+// webm can't play (e.g. iOS Safari lacks VP9 alpha) or for reduced-motion.
+let heroFadeTimer = null;
+// Play a hero's transparent clip over the scene: fade in, then fade out shortly
+// after it ends so it never lingers on top of the controls. Used for the finale
+// (isFinale → SVG/reduced-motion fallback) and for previews when picking a hero.
+function playHero(hero, isFinale) {
   clearFairy();
-  let mode = forceMode || fairyMode();
-  // reduced-motion users get the gentler vector fairy, not a full-screen video.
+  clearTimeout(heroFadeTimer);
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (mode === "video" && reduced) mode = "svg";
-  if (mode === "video") return launchFairyVideo();
-  return launchFairySVG();
-}
-
-// VIDEO: the whole fly-in + loop + spin + cheer is baked into the clip, so we
-// just centre it, play once, and fall back to the SVG if it can't load.
-function launchFairyVideo() {
+  if (isFinale && reduced) return launchFairySVG();
   const v = document.createElement("video");
-  v.className = "fairy-video";
+  v.className = "hero-video";
   v.muted = true; v.autoplay = true; v.playsInline = true;
   v.setAttribute("playsinline", "");
-  v.innerHTML = '<source src="fairy.mp4" type="video/mp4">';
-  let fell = false;
-  const fallback = () => { if (!fell) { fell = true; clearFairy(); launchFairySVG(); } };
+  v.innerHTML = `<source src="hero-${hero}.webm" type="video/webm">`;
+  let faded = false;
+  const fadeOut = () => {
+    if (faded) return; faded = true;
+    v.classList.remove("show");
+    setTimeout(() => { if (v.parentNode) v.remove(); }, 650);
+  };
+  const fallback = () => { if (v.parentNode) v.remove(); if (isFinale) launchFairySVG(); };
   v.addEventListener("error", fallback, { once: true });
   v.addEventListener("loadeddata", () => {
     if (v.play) v.play().catch(() => {});
-    requestAnimationFrame(() => v.classList.add("show")); // smooth opacity fade-in
+    requestAnimationFrame(() => v.classList.add("show"));
   });
+  v.addEventListener("ended", () => { heroFadeTimer = setTimeout(fadeOut, 400); }, { once: true });
   els.fairy.appendChild(v);
-  setTimeout(() => { if (!v.videoWidth) fallback(); }, 1500); // asset missing → SVG
+  setTimeout(() => { if (!v.videoWidth) fallback(); }, 1500);  // asset missing → fallback
+  heroFadeTimer = setTimeout(fadeOut, 5000);                   // safety: never linger
 }
+function launchFairy() { playHero(currentHero(), true); }
 
 function launchFairySVG() {
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -556,15 +554,92 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && running) requestWake();
 });
 
-// Switch fairy renderer at runtime (persists). e.g. BrushFairy.set("svg").
-window.BrushFairy = {
-  get: () => fairyMode(),
-  set: (mode) => { try { localStorage.setItem("brushBuddy.fairy", mode); } catch (e) {} return mode; },
-};
+// ---- Settings: colour scheme + hero (saved on-device) ----------------------
+const THEMES = [
+  { key: "candy",        label: "Candy",    accent: "#FF6FAE", accent2: "#B79CED", happy: "#5FD0B6", bg: "#FFF0F7", text: "#6B3A56" },
+  { key: "rosewater",    label: "Rosewater",accent: "#F06C9B", accent2: "#C9A7F0", happy: "#5FCBA0", bg: "#FFF4F8", text: "#5C3147" },
+  { key: "peach-blossom",label: "Peach",    accent: "#FF8A6B", accent2: "#E59ACB", happy: "#6FCF97", bg: "#FFF3EC", text: "#6B3B33" },
+  { key: "rocket",       label: "Rocket",   accent: "#3D6FE0", accent2: "#3FC4D6", happy: "#FF9F45", bg: "#EAF1FF", text: "#1C3061" },
+  { key: "dino",         label: "Dino",     accent: "#2FA36B", accent2: "#3FBFD8", happy: "#F2A03D", bg: "#E9F8F0", text: "#173D31" },
+  { key: "ocean",        label: "Ocean",    accent: "#13A6A6", accent2: "#54C7E8", happy: "#7FCF6E", bg: "#E5FAF8", text: "#0E4D4D" },
+  { key: "sunshine",     label: "Sunshine", accent: "#FF9E2C", accent2: "#FFD24C", happy: "#5CC98B", bg: "#FFF8E8", text: "#5E4220" },
+  { key: "mint-coral",   label: "Mint",     accent: "#FF7A6E", accent2: "#57D0C0", happy: "#52C58A", bg: "#EFFAF6", text: "#27514A" },
+  { key: "bright",       label: "Bright",   accent: "#2D7DD2", accent2: "#F4C430", happy: "#3FB57E", bg: "#EAF4FF", text: "#1B3A57" },
+];
+const HEROES = [
+  { key: "fairy",        label: "Fairy" },
+  { key: "girl-dentist", label: "Girl Dentist" },
+  { key: "boy-dentist",  label: "Boy Dentist" },
+  { key: "girl-super",   label: "Girl Hero" },
+  { key: "boy-super",    label: "Boy Hero" },
+];
+
+function currentTheme() { try { return localStorage.getItem("brushBuddy.theme") || "candy"; } catch (e) { return "candy"; } }
+function currentHero() { try { return localStorage.getItem("brushBuddy.hero") || "fairy"; } catch (e) { return "fairy"; } }
+
+function applyTheme(key) {
+  const t = THEMES.find((x) => x.key === key) || THEMES[0];
+  const s = document.documentElement.style;
+  s.setProperty("--accent", t.accent);
+  s.setProperty("--accent2", t.accent2);
+  s.setProperty("--happy", t.happy);
+  s.setProperty("--bg", t.bg);
+  s.setProperty("--text", t.text);
+  s.setProperty("--mouth-excited", t.accent);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", t.accent);
+  try { localStorage.setItem("brushBuddy.theme", t.key); } catch (e) {}
+}
+function applyHero(key) {
+  try { localStorage.setItem("brushBuddy.hero", key); } catch (e) {}
+}
+
+function buildSettings() {
+  const tg = document.getElementById("themeGrid");
+  THEMES.forEach((t) => {
+    const b = document.createElement("button");
+    b.className = "swatch" + (t.key === currentTheme() ? " sel" : "");
+    b.title = t.label;
+    b.setAttribute("aria-label", "Colour: " + t.label);
+    b.innerHTML = `<i style="background:${t.bg}"></i><b style="background:${t.accent}"></b>`;
+    b.addEventListener("click", () => {
+      applyTheme(t.key);
+      tg.querySelectorAll(".swatch").forEach((s) => s.classList.remove("sel"));
+      b.classList.add("sel");
+    });
+    tg.appendChild(b);
+  });
+
+  const hg = document.getElementById("heroGrid");
+  HEROES.forEach((h) => {
+    const b = document.createElement("button");
+    b.className = "hero-pick" + (h.key === currentHero() ? " sel" : "");
+    b.setAttribute("aria-label", "Buddy: " + h.label);
+    b.innerHTML = `<img src="hero-${h.key}.png" alt="" /><span>${h.label}</span>`;
+    b.addEventListener("click", () => {
+      applyHero(h.key);
+      hg.querySelectorAll(".hero-pick").forEach((s) => s.classList.remove("sel"));
+      b.classList.add("sel");
+      closeSettings();
+      playHero(h.key, false); // preview the chosen hero, then auto fade-out
+    });
+    hg.appendChild(b);
+  });
+}
+
+const settingsEl = document.getElementById("settings");
+function openSettings() { settingsEl.hidden = false; }
+function closeSettings() { settingsEl.hidden = true; }
+els.settingsBtn = document.getElementById("settingsBtn");
+els.settingsBtn.addEventListener("click", openSettings);
+document.getElementById("settingsClose").addEventListener("click", closeSettings);
+settingsEl.addEventListener("click", (e) => { if (e.target === settingsEl) closeSettings(); });
 
 // ---- Init ------------------------------------------------------------------
 buildScene();
 buildDirt();
+applyTheme(currentTheme());
+buildSettings();
 applyCalm();
 reset();
 
