@@ -753,7 +753,7 @@ function buildSettings() {
     const b = document.createElement("button");
     b.className = "hero-pick" + (h.key === currentHero() ? " sel" : "");
     b.setAttribute("aria-label", t().buddyOf(name));
-    b.innerHTML = `<img src="hero-${h.key}.png" alt="" /><span>${name}</span>`;
+    b.innerHTML = `<img src="icons/hero-${h.key}-192.png" alt="" /><span>${name}</span>`;
     b.addEventListener("click", () => {
       applyHero(h.key);
       hg.querySelectorAll(".hero-pick").forEach((s) => s.classList.remove("sel"));
