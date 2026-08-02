@@ -1,5 +1,6 @@
 /* Brush Buddy service worker — offline-first caching. */
-const CACHE = "brush-buddy-v11";
+const CACHE = "brush-buddy-v12";
+const HEROES = ["fairy", "girl-dentist", "boy-dentist", "girl-super", "boy-super"];
 const ASSETS = [
   ".",
   "index.html",
@@ -8,16 +9,16 @@ const ASSETS = [
   "app.js",
   "streaks.js",
   "manifest.webmanifest",
-  "icons/favicon.png",
-  "icons/apple-touch-icon.png",
-  "icons/icon-192.png",
-  "icons/icon-512.png",
-  "icons/icon-maskable-512.png",
+  ...HEROES.map((h) => `manifest-${h}.webmanifest`),
 ];
-// Optional hero clips + thumbnails — cached if present; missing must NOT fail install.
+// Optional hero art, clips + per-buddy icons — cached if present; missing must NOT fail install.
 const OPTIONAL = [
-  "hero-fairy.webm", "hero-girl-dentist.webm", "hero-boy-dentist.webm", "hero-girl-super.webm", "hero-boy-super.webm",
-  "hero-fairy.png", "hero-girl-dentist.png", "hero-boy-dentist.png", "hero-girl-super.png", "hero-boy-super.png",
+  ...HEROES.map((h) => `hero-${h}.webm`),
+  ...HEROES.map((h) => `hero-${h}.png`),
+  ...HEROES.flatMap((h) => [
+    `icons/hero-${h}-64.png`, `icons/hero-${h}-192.png`, `icons/hero-${h}-512.png`,
+    `icons/hero-${h}-maskable-512.png`, `icons/hero-${h}-apple-180.png`,
+  ]),
 ];
 
 self.addEventListener("install", (e) => {

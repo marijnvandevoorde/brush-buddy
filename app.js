@@ -699,8 +699,19 @@ function applyTheme(key) {
   if (meta) meta.setAttribute("content", t.accent);
   try { localStorage.setItem("brushBuddy.theme", t.key); } catch (e) {}
 }
+// Point the home-screen / tab icons at the chosen buddy. iOS reads
+// apple-touch-icon and Android reads the manifest, both at "Add to Home Screen"
+// time, so picking a buddy before installing makes that mascot the app icon.
+// (An already-installed icon can't be changed — an OS limitation.)
+function setAppIcons(key) {
+  const set = (sel, href) => { const el = document.querySelector(sel); if (el) el.setAttribute("href", href); };
+  set('link[rel="manifest"]', `manifest-${key}.webmanifest`);
+  set('link[rel="apple-touch-icon"]', `icons/hero-${key}-apple-180.png`);
+  set('link[rel="icon"]', `icons/hero-${key}-64.png`);
+}
 function applyHero(key) {
   try { localStorage.setItem("brushBuddy.hero", key); } catch (e) {}
+  setAppIcons(key);
 }
 
 function buildSettings() {
@@ -796,6 +807,7 @@ settingsEl.addEventListener("click", (e) => { if (e.target === settingsEl) close
 buildScene();
 buildDirt();
 applyTheme(currentTheme());
+setAppIcons(currentHero());
 buildSettings();
 applyI18n();
 reset();

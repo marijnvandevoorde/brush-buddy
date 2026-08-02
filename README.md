@@ -44,13 +44,24 @@ For **GitHub Pages**: push to the repo, then enable Pages on the default branch
 ## Project structure
 
 ```
-index.html              # markup + SVG scene (teeth, ring, smiley)
-styles.css              # styling & animations
-app.js                  # timer, quadrant logic, face states, sound, confetti
-manifest.webmanifest    # PWA metadata
-sw.js                   # offline caching service worker
-icons/                  # generated PNG app icons
+index.html                 # markup + SVG scene (teeth, ring, smiley)
+styles.css                 # styling & animations
+app.js                     # timer, quadrant logic, face states, sound, confetti
+manifest.webmanifest       # PWA metadata (defaults to the fairy buddy)
+manifest-<buddy>.webmanifest # one per buddy, referencing that buddy's icons
+sw.js                      # offline caching service worker
+icons/hero-<buddy>-*.png   # app icons, one set per buddy mascot
 ```
+
+### Per-buddy home-screen icon
+
+The installed app icon follows the buddy chosen in **Settings**. When a buddy
+is picked, `app.js` swaps `<link rel="manifest">` (Android reads this at install)
+and `<link rel="apple-touch-icon">` (iOS reads this at "Add to Home Screen"), so
+the mascot you pick becomes the home-screen icon. Pick your buddy *before*
+adding to the home screen — an already-installed icon can't be changed (an OS
+limitation, not app behaviour). Icons are generated from the `hero-<buddy>.png`
+art by `genheroes.py`.
 
 ## License
 
