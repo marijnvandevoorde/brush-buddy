@@ -144,10 +144,93 @@ const I18N = {
     newStreak: "Nieuw!",
     firstBrush: "eerste keer vandaag",
   },
+  fr: {
+    langName: "Français",
+    settings: "Réglages",
+    close: "Fermer",
+    language: "Langue",
+    colour: "Couleur",
+    buddy: "Copain",
+    sound: "Activer ou couper le son",
+    calmToggle: "Activer ou désactiver le mode calme",
+    calmOn: "Mode calme activé",
+    calmOff: "Mode calme désactivé",
+    buddyImg: "Copain de brossage",
+    ready: "Prêt",
+    done: "Terminé !",
+    sectionOf: (a, b) => `${a} sur ${b}`,
+    start: "Commencer à brosser",
+    again: "Brosser encore",
+    pause: "Pause",
+    resume: "Reprendre",
+    startOver: "Recommencer",
+    says: ["Prêt ? On brosse !", "Bravo ! Continue →", "Super brossage !", "Presque brillant !", "Tout propre ! 🎉"],
+    // Kept short: these sit around the tooth ring and wrap if they get long.
+    sections: { UR: "Haut droite", UF: "Haut devant", UL: "Haut gauche", LL: "Bas gauche", LR: "Bas droite", LF: "Bas devant" },
+    surf: { out: { label: "Extérieur", hint: "petits cercles doux" }, top: { label: "Dessus des dents", hint: "doux va-et-vient" }, in: { label: "Intérieur", hint: "petits cercles doux" } },
+    frontTeeth: "Dents de devant",
+    insideFront: "Intérieur devant",
+    brushUpDown: "brosse de haut en bas",
+    colourOf: (n) => "Couleur : " + n,
+    buddyOf: (n) => "Copain : " + n,
+    themes: { candy: "Bonbon", rosewater: "Eau de rose", "peach-blossom": "Pêche", rocket: "Fusée", dino: "Dino", ocean: "Océan", sunshine: "Soleil", "mint-coral": "Menthe", bright: "Éclatant" },
+    heroes: { fairy: "Fée", "girl-dentist": "Dentiste (fille)", "boy-dentist": "Dentiste (garçon)", "girl-super": "Héroïne", "boy-super": "Héros" },
+    oneDay: "1 jour",
+    nDays: (n) => `${n} jours`,
+    todayDone: "✓ aujourd'hui",
+    brushToday: "brosse aujourd'hui !",
+    startAgain: "On recommence",
+    best: (n) => `record : ${n}`,
+    newStreak: "Nouveau !",
+    firstBrush: "premier brossage du jour",
+  },
+  es: {
+    langName: "Español",
+    settings: "Ajustes",
+    close: "Cerrar",
+    language: "Idioma",
+    colour: "Color",
+    buddy: "Amigo",
+    sound: "Activar o silenciar el sonido",
+    calmToggle: "Activar o desactivar el modo tranquilo",
+    calmOn: "Modo tranquilo activado",
+    calmOff: "Modo tranquilo desactivado",
+    buddyImg: "Amigo de cepillado",
+    ready: "Preparado",
+    done: "¡Terminado!",
+    sectionOf: (a, b) => `${a} de ${b}`,
+    start: "Empezar a cepillar",
+    again: "Cepillar otra vez",
+    pause: "Pausa",
+    resume: "Continuar",
+    startOver: "Empezar de nuevo",
+    says: ["¿Listo? ¡A cepillar!", "¡Muy bien! Sigue →", "¡Qué bien cepillas!", "¡Casi brillante!", "¡Todo limpio! 🎉"],
+    sections: { UR: "Arriba derecha", UF: "Arriba delante", UL: "Arriba izquierda", LL: "Abajo izquierda", LR: "Abajo derecha", LF: "Abajo delante" },
+    surf: { out: { label: "Por fuera", hint: "círculos pequeños y suaves" }, top: { label: "Parte de masticar", hint: "suave adelante y atrás" }, in: { label: "Por dentro", hint: "círculos pequeños y suaves" } },
+    frontTeeth: "Dientes de delante",
+    insideFront: "Por dentro delante",
+    brushUpDown: "cepilla arriba y abajo",
+    colourOf: (n) => "Color: " + n,
+    buddyOf: (n) => "Amigo: " + n,
+    themes: { candy: "Caramelo", rosewater: "Agua de rosas", "peach-blossom": "Melocotón", rocket: "Cohete", dino: "Dino", ocean: "Océano", sunshine: "Sol", "mint-coral": "Menta", bright: "Brillante" },
+    heroes: { fairy: "Hada", "girl-dentist": "Dentista (niña)", "boy-dentist": "Dentista (niño)", "girl-super": "Heroína", "boy-super": "Héroe" },
+    oneDay: "1 día",
+    nDays: (n) => `${n} días`,
+    todayDone: "✓ hoy",
+    brushToday: "¡cepíllate hoy!",
+    startAgain: "Empezamos de nuevo",
+    best: (n) => `récord: ${n}`,
+    newStreak: "¡Nuevo!",
+    firstBrush: "primer cepillado de hoy",
+  },
 };
-const LANGS = ["en", "nl"];
+const LANGS = ["en", "nl", "fr", "es"];
 function defaultLang() {
-  try { return (navigator.language || "").toLowerCase().indexOf("nl") === 0 ? "nl" : "en"; } catch (e) { return "en"; }
+  // Match the browser's primary language against what we ship (nl-BE → nl).
+  try {
+    const pref = (navigator.language || "").toLowerCase().split("-")[0];
+    return LANGS.indexOf(pref) >= 0 ? pref : "en";
+  } catch (e) { return "en"; }
 }
 let lang = "en";
 try { lang = localStorage.getItem("brushBuddy.lang") || defaultLang(); } catch (e) {}
@@ -218,7 +301,9 @@ function buildScene() {
     const x = 160 + 150 * Math.sin(rad);
     const y = 160 - 150 * Math.cos(rad);
     const lab = document.createElement("div");
-    lab.className = "qlabel";
+    // Side labels sit beside the ring and would run under the mascot in
+    // languages with longer words, so they get a width cap and wrap instead.
+    lab.className = "qlabel" + (sec.type === "back" ? " side" : "");
     lab.textContent = t().sections[sec.key];
     lab.style.left = x.toFixed(1) + "px";
     lab.style.top = y.toFixed(1) + "px";
@@ -780,6 +865,8 @@ function applyI18n() {
   setText("buddyHead", d.buddy);
   const xClose = document.getElementById("settingsClose");
   if (xClose) xClose.setAttribute("aria-label", d.close);
+  const card = document.getElementById("settingsCard");
+  if (card) card.setAttribute("aria-label", d.settings);
   els.buddyBody.setAttribute("aria-label", d.buddyImg);
   els.reset.textContent = d.startOver;
   labelEls.forEach((lab, i) => { lab.textContent = d.sections[SECTIONS[i].key]; });
