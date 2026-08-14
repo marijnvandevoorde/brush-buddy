@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      Plain platform theme: the whole UI is drawn by the WebView, so there is
+      nothing for a material theme to style. The candy-pink window background
+      means the launch frame matches the app instead of flashing white.
+
+      No statusBarColor/navigationBarColor here: both are deprecated as of
+      Android 15, where an app targeting SDK 35+ gets transparent system bars
+      for free. MainActivity hides the bars outright anyway.
+    -->
+    <style name="Theme.BrushBuddy" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/brand_bg</item>
+        <item name="android:colorBackground">@color/brand_bg</item>
+        <!-- API 28-29 only; values-v30 upgrades this to "always" and Android 15+
+             already defaults to it. -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">shortEdges</item>
+    </style>
+</resources>

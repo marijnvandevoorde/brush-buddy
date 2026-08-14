@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      "always" (API 30+) lets the app use the full display in landscape too,
+      where a cutout sits on a long edge and "shortEdges" would letterbox it
+      away. It is also what Android 15+ picks by default, so this keeps 30-34
+      behaving like 35+. The layout pads with env(safe-area-inset-*), so nothing
+      tappable ends up under the camera.
+    -->
+    <style name="Theme.BrushBuddy" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/brand_bg</item>
+        <item name="android:colorBackground">@color/brand_bg</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+    </style>
+</resources>

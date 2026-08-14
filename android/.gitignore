@@ -1,0 +1,13 @@
+.gradle/
+build/
+local.properties
+
+# Generated from ../dist by the syncWebAssets task — never edit by hand.
+app/src/main/assets/
+
+# Signing material. NEVER commit these: losing or leaking the upload key is
+# unrecoverable for a published app.
+keystore.properties
+*.jks
+*.keystore
+app/src/debug/assets/

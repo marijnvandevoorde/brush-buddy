@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The default "candy" scheme from styles.css. The in-app colour picker can
+      change these at runtime, but the launch window has to guess, and the
+      default is what most installs will see.
+    -->
+    <color name="brand_bg">#FFF0F7</color>
+    <color name="brand_accent">#FF6FAE</color>
+</resources>

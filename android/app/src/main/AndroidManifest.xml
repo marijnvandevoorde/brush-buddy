@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      VIBRATE is the only permission. The app buzzes once per quadrant change
+      (navigator.vibrate, app.js) so a child brushing with the screen face-down
+      still gets the cue. It is not a runtime permission and grants no access to
+      data. There is deliberately no INTERNET permission: the whole app, fonts
+      and hero clips included, ships inside the APK and is served to the WebView
+      from assets/, so nothing here can leave the device.
+    -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:hasFragileUserData="false"
+        android:supportsRtl="false"
+        android:enableOnBackInvokedCallback="true"
+        android:theme="@style/Theme.BrushBuddy">
+
+        <!--
+          No android:screenOrientation. Android 16 ignores orientation and
+          resizability restrictions on large screens anyway, so locking to
+          portrait would only mean the tablet/foldable layout never got tested.
+          styles.css has a landscape/short-viewport layout that splits the ring
+          and the controls into two columns.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

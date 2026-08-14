@@ -136,6 +136,7 @@ body {
   color: rgba(0,0,0,0.32);
   transition: color .3s ease;
 }
+.qlabel.side   { max-width: 72px; }
 .qlabel.done   { color: var(--happy); }
 .qlabel.active { color: var(--accent); }
 
@@ -358,6 +359,45 @@ body {
 .hero-pick span { font: 700 9.5px/1.1 'Nunito', sans-serif; color: var(--text); text-align: center; }
 .hero-pick.sel { background: color-mix(in srgb, var(--accent) 22%, #fff); box-shadow: 0 0 0 2px var(--accent); }
 
+/* ---- Landscape / short viewport ------------------------------------------
+   From Android 16 the platform ignores an app's orientation lock on large
+   screens, so the phone-portrait layout has to survive being turned sideways.
+   A 440px column with a 320px ring wants ~400px of height and a landscape
+   phone has ~390px, so the single column splits in two: ring on the left,
+   header and controls stacked on the right.
+
+   The ring keeps its 320px coordinate space — app.js positions the teeth and
+   labels with hard-coded maths against it (160 ± 150) — so it is scaled with a
+   transform, and the negative margin gives back the layout height a transform
+   does not. */
+@media (orientation: landscape) and (max-height: 620px) {
+  .app {
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "stage hdr"
+      "stage hdr"
+      "stage controls";
+    align-items: center;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .hdr      { grid-area: hdr; align-self: end; }
+  .stage    { grid-area: stage; justify-content: center; padding: 8px 8px 0; gap: 8px; }
+  .controls { grid-area: controls; align-self: start; padding-top: 10px; }
+
+  .ring-box {
+    --ring-scale: 0.78;
+    transform: scale(var(--ring-scale));
+    margin: calc(320px * (var(--ring-scale) - 1) / 2) 0;
+  }
+
+  /* The finale clip is framed for a portrait canvas; over a wide one it would
+     otherwise centre across both columns and drift behind the buttons. */
+  .hero-video { object-position: 25% center; }
+}
 
 /* ---- Keyframes ------------------------------------------------------------ */
 @keyframes tbb-blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
