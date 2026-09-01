@@ -158,8 +158,11 @@
     },
   };
 
-  // Dutch variants of the shots where the copy is the point.
-  ["ready", "settings", "finale", "buddies"].forEach(function (name) {
+  // Dutch twin of every scene. The App Store shows screenshots per locale, so a
+  // Dutch listing carrying English UI shots looks unfinished — every scene needs
+  // both, not just the text-heavy ones.
+  ["ready", "brushing", "brushing_late", "finale", "streak",
+   "settings", "buddies", "buddy_super", "theme_ocean"].forEach(function (name) {
     SCENES[name + "_nl"] = async function () {
       await setLanguage("nl");
       await SCENES[name]();

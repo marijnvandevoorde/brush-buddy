@@ -41,7 +41,8 @@ DEVICES=(
 SCENES=(
   ready brushing brushing_late finale streak
   settings buddies buddy_super theme_ocean
-  ready_nl settings_nl finale_nl buddies_nl
+  ready_nl brushing_nl brushing_late_nl finale_nl streak_nl
+  settings_nl buddies_nl buddy_super_nl theme_ocean_nl
 )
 [[ $# -gt 0 ]] && SCENES=("$@")
 
