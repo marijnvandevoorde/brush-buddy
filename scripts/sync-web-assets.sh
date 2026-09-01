@@ -31,6 +31,8 @@ for h in $HEROES; do
   cp "$SRC/manifest-$h.webmanifest" "$DEST/"
   cp "$SRC/hero-$h.png"  "$DEST/"
   cp "$SRC/hero-$h.webm" "$DEST/"
+  # HEVC-with-alpha twin for WebKit; see scripts/make-hero-clips.sh.
+  cp "$SRC/hero-$h.mp4"  "$DEST/"
 done
 
 # A stray absolute URL in anything the browser parses would mean the app tries to

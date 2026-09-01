@@ -601,8 +601,34 @@ function finish() {
 function clearFairy() { els.fairy.innerHTML = ""; }
 
 // Finale: the chosen hero's transparent (alpha) clip floats over the done scene,
-// so it works with any colour scheme. Falls back to the built-in SVG fairy if the
-// webm can't play (e.g. iOS Safari lacks VP9 alpha) or for reduced-motion.
+// so it works with any colour scheme.
+//
+// Each clip ships twice because no single format carries alpha everywhere:
+// Chrome and Firefox play VP9-in-WebM with its alpha plane and cannot decode
+// HEVC alpha; WebKit is exactly the other way round. Every browser on iOS is
+// WebKit, so the check is for the engine rather than for the OS. Getting this
+// wrong is quiet — the wrong file still plays, just opaque, with the mascot in
+// a black box — so prefer per-engine rather than letting <source> negotiate.
+const WEBKIT = navigator.vendor === "Apple Computer, Inc.";
+function heroSources(hero) {
+  const mp4 = `<source src="hero-${hero}.mp4" type='video/mp4; codecs="hvc1"'>`;
+  const webm = `<source src="hero-${hero}.webm" type="video/webm">`;
+  return WEBKIT ? mp4 + webm : webm + mp4;
+}
+
+// Last resort when neither clip decodes: the hero's own still, faded in exactly
+// like the video it replaces. Every hero ships one, so a buddy preview always
+// shows that buddy rather than an empty box.
+function showHeroStill(hero) {
+  const img = document.createElement("img");
+  img.className = "hero-video";
+  img.alt = "";
+  img.src = `hero-${hero}.png`;
+  els.fairy.appendChild(img);
+  requestAnimationFrame(() => img.classList.add("show"));
+  return img;
+}
+
 let heroFadeTimer = null;
 // Play a hero's transparent clip over the scene: fade in, then fade out shortly
 // after it ends so it never lingers on top of the controls. Used for the finale
@@ -616,14 +642,24 @@ function playHero(hero, isFinale) {
   v.className = "hero-video";
   v.muted = true; v.autoplay = true; v.playsInline = true;
   v.setAttribute("playsinline", "");
-  v.innerHTML = `<source src="hero-${hero}.webm" type="video/webm">`;
+  v.innerHTML = heroSources(hero);
   let faded = false;
   const fadeOut = () => {
     if (faded) return; faded = true;
     v.classList.remove("show");
     setTimeout(() => { if (v.parentNode) v.remove(); }, 650);
   };
-  const fallback = () => { if (v.parentNode) v.remove(); if (isFinale) launchFairySVG(); };
+  // The finale keeps its animated SVG; a preview shows the buddy's still, which
+  // is the whole point of the picker.
+  const fallback = () => {
+    if (v.parentNode) v.remove();
+    if (isFinale) { launchFairySVG(); return; }
+    const img = showHeroStill(hero);
+    heroFadeTimer = setTimeout(() => {
+      img.classList.remove("show");
+      setTimeout(() => { if (img.parentNode) img.remove(); }, 650);
+    }, 2200);
+  };
   v.addEventListener("error", fallback, { once: true });
   v.addEventListener("loadeddata", () => {
     if (v.play) v.play().catch(() => {});

@@ -1,5 +1,5 @@
 /* Brush Buddy service worker — offline-first caching. */
-const CACHE = "brush-buddy-v14";
+const CACHE = "brush-buddy-v15";
 const HEROES = ["fairy", "girl-dentist", "boy-dentist", "girl-super", "boy-super"];
 const ASSETS = [
   ".",
@@ -22,6 +22,8 @@ const ASSETS = [
 // Optional hero art, clips + per-buddy icons — cached if present; missing must NOT fail install.
 const OPTIONAL = [
   ...HEROES.map((h) => `hero-${h}.webm`),
+  // WebKit cannot decode the WebM's alpha plane and takes these instead.
+  ...HEROES.map((h) => `hero-${h}.mp4`),
   ...HEROES.map((h) => `hero-${h}.png`),
   ...HEROES.flatMap((h) => [
     `icons/hero-${h}-64.png`, `icons/hero-${h}-192.png`, `icons/hero-${h}-512.png`,
