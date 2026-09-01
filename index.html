@@ -15,10 +15,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Brush Buddy" />
 
-  <!-- Fonts: Baloo 2 (display) + Nunito (body) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet" />
+  <!-- Fonts: Baloo 2 (display) + Nunito (body), bundled in fonts/ rather than
+       fetched from Google. Brush Buddy makes no network requests at all — the
+       native wrappers cannot, and the web build should not either. -->
+  <link rel="stylesheet" href="fonts.css" />
 
   <link rel="stylesheet" href="styles.css" />
 </head>

@@ -1,5 +1,5 @@
 /* Brush Buddy service worker — offline-first caching. */
-const CACHE = "brush-buddy-v13";
+const CACHE = "brush-buddy-v14";
 const HEROES = ["fairy", "girl-dentist", "boy-dentist", "girl-super", "boy-super"];
 const ASSETS = [
   ".",
@@ -9,6 +9,14 @@ const ASSETS = [
   "app.js",
   "streaks.js",
   "manifest.webmanifest",
+  // Self-hosted so the app renders identically offline and makes no third-party
+  // request. These are required, not optional: without them the first paint
+  // falls back to a system font.
+  "fonts.css",
+  "fonts/baloo2-latin.woff2",
+  "fonts/baloo2-latin-ext.woff2",
+  "fonts/nunito-latin.woff2",
+  "fonts/nunito-latin-ext.woff2",
   ...HEROES.map((h) => `manifest-${h}.webmanifest`),
 ];
 // Optional hero art, clips + per-buddy icons — cached if present; missing must NOT fail install.
