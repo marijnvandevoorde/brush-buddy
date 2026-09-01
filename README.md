@@ -42,10 +42,11 @@ deployed straight from `main` — there is no build step, so pushing to `main`
 publishes the repo root as-is. Project settings (custom domain, production
 branch) live in the Cloudflare dashboard, not in this repo.
 
-`_headers` is the one piece of deploy config that *is* committed: it stops
-`sw.js` and the app-shell sources from being served from a stale HTTP cache,
-which would otherwise delay a release by up to four hours. See the comments in
-that file.
+`_headers` is the one piece of deploy config that *is* committed: security
+headers, plus Cache-Control rules meant to stop the app shell from being
+installed into the service-worker cache from a stale HTTP copy. Note that the
+Cache-Control half is currently overridden for `.js`/`.css` by the zone's
+4-hour Browser Cache TTL — see the comments in that file for what to flip.
 
 Nothing is Cloudflare-specific beyond `_headers`, so the site can be hosted
 anywhere static (Netlify reads `_headers` too; GitHub Pages ignores it).
