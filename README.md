@@ -37,9 +37,18 @@ Or any static server (`npx serve`, etc.).
 
 ## Deploy
 
-It's a static site — host it anywhere (GitHub Pages, Netlify, Vercel, …).
-For **GitHub Pages**: push to the repo, then enable Pages on the default branch
-(root). The app installs straight from the served URL over HTTPS.
+Live at **https://brush-buddy.small-victories.co** on **Cloudflare Pages**,
+deployed straight from `main` — there is no build step, so pushing to `main`
+publishes the repo root as-is. Project settings (custom domain, production
+branch) live in the Cloudflare dashboard, not in this repo.
+
+`_headers` is the one piece of deploy config that *is* committed: it stops
+`sw.js` and the app-shell sources from being served from a stale HTTP cache,
+which would otherwise delay a release by up to four hours. See the comments in
+that file.
+
+Nothing is Cloudflare-specific beyond `_headers`, so the site can be hosted
+anywhere static (Netlify reads `_headers` too; GitHub Pages ignores it).
 
 ## Project structure
 

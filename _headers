@@ -1,0 +1,30 @@
+# Cloudflare Pages response headers.
+# Rules are additive: /* applies everywhere, and a more specific path adds to it
+# (Cache-Control set below overrides the one from /*). Media and icons are left
+# on the Pages default (4h + must-revalidate) — they are large and revalidate
+# cheaply with a 304.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+
+# The service worker is the app's update mechanism, so it must never be served
+# from a stale HTTP cache: the default 4h max-age delays every release by up to
+# four hours for an installed user.
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# App-shell sources have unversioned filenames — the CACHE rev in sw.js is what
+# invalidates them. If they sit in the HTTP cache, a rev bump can reinstall the
+# *old* files into the *new* cache, so always revalidate.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+/app.js
+  Cache-Control: public, max-age=0, must-revalidate
+/streaks.js
+  Cache-Control: public, max-age=0, must-revalidate
+/streak-logic.js
+  Cache-Control: public, max-age=0, must-revalidate
+/styles.css
+  Cache-Control: public, max-age=0, must-revalidate
