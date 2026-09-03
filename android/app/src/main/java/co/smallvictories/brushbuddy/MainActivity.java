@@ -183,12 +183,20 @@ public class MainActivity extends Activity {
      * reproduce the modern default on older releases.
      */
     private void goEdgeToEdge() {
+        // Asking for the decor view builds it if the window has none yet. The
+        // insets controller lives on that decor view, so without this the first
+        // call — before setContentView() in onCreate() — throws an NPE on API 35+,
+        // where the setDecorFitsSystemWindows() branch below no longer runs and
+        // is no longer there to create the decor as a side effect.
+        View decor = getWindow().getDecorView();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 // API 30-34: opt in to what API 35 does on its own.
                 getWindow().setDecorFitsSystemWindows(false);
             }
-            WindowInsetsController bars = getWindow().getInsetsController();
+            // Null until the window is attached; onWindowFocusChanged() calls
+            // back in once it is, which is when the bars actually go away.
+            WindowInsetsController bars = decor.getWindowInsetsController();
             if (bars != null) {
                 bars.hide(WindowInsets.Type.systemBars());
                 bars.setSystemBarsBehavior(
