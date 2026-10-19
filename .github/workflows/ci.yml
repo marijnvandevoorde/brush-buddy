@@ -1,0 +1,42 @@
+name: CI
+
+# Cheap checks so Dependabot updates get tested before they auto-merge:
+# - the streak logic tests and a syntax check of the web app's JS.
+# - gradle: configure the Android wrapper (resolves the Android Gradle Plugin
+#   on the pinned Gradle wrapper). No Android build: that stays on demand.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Test web app
+        run: |
+          node streak-logic.test.js
+          for f in *.js; do node --check "$f"; done
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Configure Android project
+        working-directory: android
+        run: ./gradlew --no-daemon help
