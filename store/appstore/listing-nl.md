@@ -119,7 +119,7 @@ tandenpoetsen,poetsen,tanden,timer,tandarts,kinderen,peuter,gewoonte,routine,hyg
 | Veld | Waarde |
 | --- | --- |
 | Ondersteunings-URL (verplicht) | `https://small-victories.co/contact` |
-| Marketing-URL (optioneel) | `https://brush-buddy.small-victories.co/` |
+| Marketing-URL (optioneel) | `https://small-victories.co/` (niet de web-app: die is niet openbaar vermeld) |
 | Privacybeleid-URL | `https://small-victories.co/privacy-policy/brush-buddy-privacy-policy` |
 
 > ⚠️ Er staan **twee** Brush Buddy-privacyverklaringen online — zie de noot in
