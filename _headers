@@ -11,6 +11,7 @@
 # Headers" makes these rules take effect — until then they are documentation.
 
 /*
+  X-Robots-Tag: noindex, nofollow
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN

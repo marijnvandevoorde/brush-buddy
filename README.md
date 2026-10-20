@@ -3,6 +3,9 @@
 A friendly, installable **Progressive Web App** that guides you (or your kids)
 through brushing all four quadrants of your teeth for a full two minutes.
 
+Get it on the [App Store](https://apps.apple.com/app/id6807365051) or
+[Google Play](https://play.google.com/store/apps/details?id=co.smallvictories.brushbuddy).
+
 ## How it works
 
 - The upper and lower teeth are split into **four quadrants**.
@@ -37,7 +40,7 @@ Or any static server (`npx serve`, etc.).
 
 ## Deploy
 
-Live at **https://brush-buddy.small-victories.co** on **Cloudflare Pages**,
+Served at `brush-buddy.small-victories.co` on **Cloudflare Pages**,
 deployed straight from `main` — there is no build step, so pushing to `main`
 publishes the repo root as-is. Project settings (custom domain, production
 branch) live in the Cloudflare dashboard, not in this repo.
@@ -47,6 +50,12 @@ headers, plus Cache-Control rules meant to stop the app shell from being
 installed into the service-worker cache from a stale HTTP copy. Note that the
 Cache-Control half is currently overridden for `.js`/`.css` by the zone's
 4-hour Browser Cache TTL — see the comments in that file for what to flip.
+
+The web version is **unlisted**: people should install the app from the
+stores instead. `index.html` carries a `noindex, nofollow` robots meta tag,
+`_headers` adds `X-Robots-Tag` to every response, and `robots.txt` disallows
+everything except `privacy.html` (the Play listing links to it). Don't add a
+sitemap, canonical or `og:url`, or links to the web URL.
 
 Nothing is Cloudflare-specific beyond `_headers`, so the site can be hosted
 anywhere static (Netlify reads `_headers` too; GitHub Pages ignores it).

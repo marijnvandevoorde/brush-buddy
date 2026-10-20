@@ -116,7 +116,7 @@ toothbrush,brushing,teeth,timer,dentist,kids,children,toddler,routine,habit,hygi
 | Field | Value |
 | --- | --- |
 | Support URL (required) | `https://small-victories.co/contact` |
-| Marketing URL (optional) | `https://brush-buddy.small-victories.co/` |
+| Marketing URL (optional) | `https://small-victories.co/` (not the web app: it is unlisted) |
 | Privacy Policy URL | `https://small-victories.co/privacy-policy/brush-buddy-privacy-policy` |
 
 > ⚠️ There are **two** live Brush Buddy privacy policies:
