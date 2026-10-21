@@ -1,5 +1,4 @@
 # The web version of Brush Buddy is unlisted; get it from the App Store or
-# Google Play. privacy.html stays fetchable because the Play listing links to it.
+# Google Play.
 User-agent: *
-Allow: /privacy.html
 Disallow: /
