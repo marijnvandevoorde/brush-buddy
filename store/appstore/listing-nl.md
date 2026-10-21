@@ -120,10 +120,10 @@ tandenpoetsen,poetsen,tanden,timer,tandarts,kinderen,peuter,gewoonte,routine,hyg
 | --- | --- |
 | Ondersteunings-URL (verplicht) | `https://small-victories.co/contact` |
 | Marketing-URL (optioneel) | `https://small-victories.co/` (niet de web-app: die is niet openbaar vermeld) |
-| Privacybeleid-URL | `https://small-victories.co/privacy-policy/brush-buddy-privacy-policy` |
+| Privacybeleid-URL | `https://small-victories.co/projects/brush-buddy/privacy` |
 
-> ⚠️ Er staan **twee** Brush Buddy-privacyverklaringen online — zie de noot in
-> `listing-en.md`. Kies er één als canoniek voordat je indient.
+> De live App Store-vermelding heeft nog de oude URL, die hierheen doorverwijst —
+> zie de noot in `listing-en.md`.
 
 ## Overige velden
 

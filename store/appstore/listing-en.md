@@ -117,13 +117,12 @@ toothbrush,brushing,teeth,timer,dentist,kids,children,toddler,routine,habit,hygi
 | --- | --- |
 | Support URL (required) | `https://small-victories.co/contact` |
 | Marketing URL (optional) | `https://small-victories.co/` (not the web app: it is unlisted) |
-| Privacy Policy URL | `https://small-victories.co/privacy-policy/brush-buddy-privacy-policy` |
+| Privacy Policy URL | `https://small-victories.co/projects/brush-buddy/privacy` |
 
-> ⚠️ There are **two** live Brush Buddy privacy policies:
-> `brush-buddy.small-victories.co/privacy.html` (in this repo, and what the Play
-> listing points at) and the one on `small-victories.co` above, which is where
-> the other Small Victories apps point. They can drift. Pick one as canonical
-> before submitting, and make the other redirect to it.
+> The live App Store listing still has the old
+> `https://small-victories.co/privacy-policy/brush-buddy-privacy-policy`, which
+> redirects to the URL above; set the new one with the next submission.
+> `brush-buddy.small-victories.co/privacy.html` only redirects there too.
 
 ## Other fields
 

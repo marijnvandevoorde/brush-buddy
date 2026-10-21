@@ -104,4 +104,4 @@ een telefoon moet zitten.
 | **Categorie** | Gezondheid en fitness |
 | **Contact-e-mail** | `hello@small-victories.co` |
 | **Website** | `https://small-victories.co/` |
-| **Privacybeleid-URL** | `https://brush-buddy.small-victories.co/privacy.html` |
+| **Privacybeleid-URL** | `https://small-victories.co/projects/brush-buddy/privacy` |

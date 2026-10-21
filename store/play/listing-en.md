@@ -101,7 +101,7 @@ wet phone mid-brush.
 | **Tags** | Health & Fitness, Family friendly, Parenting |
 | **Contact email** | `hello@small-victories.co` |
 | **Website** | `https://small-victories.co/` |
-| **Privacy policy URL** | `https://brush-buddy.small-victories.co/privacy.html` |
+| **Privacy policy URL** | `https://small-victories.co/projects/brush-buddy/privacy` |
 | **Price** | €0.89 / $0.89 (check the per-country floor — see note below) |
 
 > **Price floor.** Google sets a minimum price per country, and in several

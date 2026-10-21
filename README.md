@@ -54,7 +54,8 @@ Cache-Control half is currently overridden for `.js`/`.css` by the zone's
 The web version is **unlisted**: people should install the app from the
 stores instead. `index.html` carries a `noindex, nofollow` robots meta tag,
 `_headers` adds `X-Robots-Tag` to every response, and `robots.txt` disallows
-everything except `privacy.html` (the Play listing links to it). Don't add a
+everything. `privacy.html` only redirects to the policy on
+small-victories.co, which both stores link to. Don't add a
 sitemap, canonical or `og:url`, or links to the web URL.
 
 Nothing is Cloudflare-specific beyond `_headers`, so the site can be hosted
