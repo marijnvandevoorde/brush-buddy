@@ -117,12 +117,20 @@ toothbrush,brushing,teeth,timer,dentist,kids,children,toddler,routine,habit,hygi
 | --- | --- |
 | Support URL (required) | `https://small-victories.co/contact` |
 | Marketing URL (optional) | `https://small-victories.co/` (not the web app: it is unlisted) |
-| Privacy Policy URL | `https://small-victories.co/projects/brush-buddy/privacy` |
+| Privacy Policy URL | `https://www.small-victories.co/projects/brush-buddy/privacy` |
 
-> The live App Store listing still has the old
-> `https://small-victories.co/privacy-policy/brush-buddy-privacy-policy`, which
-> redirects to the URL above; set the new one with the next submission.
-> `brush-buddy.small-victories.co/privacy.html` only redirects there too.
+> **Apply with the next App Store version.** The live listing (1.0, checked
+> 2026-11-20) still has the old values below; App Store Connect only lets you
+> change them while a new version is being prepared.
+>
+> | Field (where) | Locales | Live now | Set to |
+> | --- | --- | --- | --- |
+> | Privacy Policy URL (App Information) | nl-NL, en-US | `https://small-victories.co/privacy-policy/brush-buddy-privacy-policy` | `https://www.small-victories.co/projects/brush-buddy/privacy` |
+> | Marketing URL (version) | nl-NL, en-US | `https://brush-buddy.small-victories.co/` | `https://small-victories.co/` |
+>
+> The old privacy URL and the apex `small-victories.co` redirect to the `www.`
+> page, which answers 200. `brush-buddy.small-victories.co/privacy.html` only
+> redirects there too.
 
 ## Other fields
 
