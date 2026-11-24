@@ -169,7 +169,14 @@
     };
   });
 
+  // Every finale counts as a completed brush, so a few shots in, the grown-ups'
+  // review card would be due. Mark it as done for good on this device.
+  function noReviewCard() {
+    try { localStorage.setItem("brushBuddy.review.v1", JSON.stringify({ gatePassed: true })); } catch (e) {}
+  }
+
   window.__scene = async function (name) {
+    noReviewCard();
     var fn = SCENES[name];
     if (!fn) return "unknown scene " + name;
     try {

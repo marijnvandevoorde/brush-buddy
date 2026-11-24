@@ -21,8 +21,8 @@ android {
         applicationId = "co.smallvictories.brushbuddy"
         minSdk = 24
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.1.0"
+        versionCode = 5
+        versionName = "1.1.1"
     }
 
     signingConfigs {
@@ -63,6 +63,12 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+}
+
+dependencies {
+    // Play In-App Review: the grown-up-gated review prompt (see ReviewBridge).
+    // Talks to the Play Store app over IPC, so it needs no INTERNET permission.
+    implementation("com.google.android.play:review:2.0.2")
 }
 
 // The web app at the repo root is the single source of truth. assets/www is

@@ -104,6 +104,14 @@ const I18N = {
     best: (n) => `best: ${n}`,
     newStreak: "New!",
     firstBrush: "first brush today",
+    // review prompt (grown-ups only, native apps only)
+    reviewAsk: "Grown-ups: enjoying Brush Buddy? A review helps a lot",
+    reviewYes: "Leave a review",
+    reviewNo: "Not now",
+    gateTitle: "For grown-ups",
+    gateQ: (a, b) => `What is ${a} + ${b}?`,
+    gateOk: "OK",
+    gateWrong: "Not quite. Try this one:",
   },
   nl: {
     langName: "Nederlands",
@@ -143,6 +151,13 @@ const I18N = {
     best: (n) => `beste: ${n}`,
     newStreak: "Nieuw!",
     firstBrush: "eerste keer vandaag",
+    reviewAsk: "Voor de grote mensen: vind je Brush Buddy fijn? Een review helpt ons enorm",
+    reviewYes: "Review schrijven",
+    reviewNo: "Niet nu",
+    gateTitle: "Voor volwassenen",
+    gateQ: (a, b) => `Hoeveel is ${a} + ${b}?`,
+    gateOk: "OK",
+    gateWrong: "Niet helemaal. Probeer deze:",
   },
   fr: {
     langName: "Français",
@@ -183,6 +198,13 @@ const I18N = {
     best: (n) => `record : ${n}`,
     newStreak: "Nouveau !",
     firstBrush: "premier brossage du jour",
+    reviewAsk: "Pour les grands : Brush Buddy vous plaît ? Un avis nous aide beaucoup",
+    reviewYes: "Laisser un avis",
+    reviewNo: "Pas maintenant",
+    gateTitle: "Pour les adultes",
+    gateQ: (a, b) => `Combien font ${a} + ${b} ?`,
+    gateOk: "OK",
+    gateWrong: "Pas tout à fait. Essayez celle-ci :",
   },
   es: {
     langName: "Español",
@@ -222,6 +244,13 @@ const I18N = {
     best: (n) => `récord: ${n}`,
     newStreak: "¡Nuevo!",
     firstBrush: "primer cepillado de hoy",
+    reviewAsk: "Para los mayores: ¿os gusta Brush Buddy? Una reseña nos ayuda muchísimo",
+    reviewYes: "Escribir una reseña",
+    reviewNo: "Ahora no",
+    gateTitle: "Para adultos",
+    gateQ: (a, b) => `¿Cuánto es ${a} + ${b}?`,
+    gateOk: "OK",
+    gateWrong: "No exactamente. Prueba con esta:",
   },
 };
 const LANGS = ["en", "nl", "fr", "es"];
@@ -926,6 +955,133 @@ els.settingsBtn = document.getElementById("settingsBtn");
 els.settingsBtn.addEventListener("click", openSettings);
 document.getElementById("settingsClose").addEventListener("click", closeSettings);
 settingsEl.addEventListener("click", (e) => { if (e.target === settingsEl) closeSettings(); });
+
+// ---- Store review prompt (grown-ups only) ----------------------------------
+// After the 3rd completed brush, a small card on the finish screen asks the
+// grown-ups for a store review. Kids-category rules: nothing store-related
+// happens until a grown-up passes a sum a young child can't do. Only the native
+// apps show it — the web build has no store to review in, so no bridge, no card.
+//   - at most once per 120 days, at most 3 times ever; "not now" counts
+//   - never again once the gate has been passed (we can't know if they rated)
+const REVIEW_KEY = "brushBuddy.review.v1";
+const REVIEW_AFTER = 3;
+const REVIEW_GAP_MS = 120 * 24 * 60 * 60 * 1000;
+const REVIEW_MAX_ASKS = 3;
+const REVIEW_DELAY_MS = 6000;  // let the hero finale play out first
+
+function reviewBridge() {
+  const ios = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.review;
+  if (ios) return () => ios.postMessage("request");
+  const android = window.BrushBuddyReview;
+  if (android && typeof android.requestReview === "function") return () => android.requestReview();
+  return null;
+}
+function loadReview() {
+  const blank = { completed: 0, asks: 0, lastAsk: 0, gatePassed: false };
+  try { return Object.assign(blank, JSON.parse(localStorage.getItem(REVIEW_KEY)) || {}); } catch (e) { return blank; }
+}
+function saveReview(r) { try { localStorage.setItem(REVIEW_KEY, JSON.stringify(r)); } catch (e) {} }
+function reviewDue(r, now) {
+  return !r.gatePassed && r.completed >= REVIEW_AFTER && r.asks < REVIEW_MAX_ASKS &&
+    (!r.lastAsk || now - r.lastAsk >= REVIEW_GAP_MS);
+}
+
+const reviewEl = document.getElementById("review");
+const reviewBody = document.getElementById("reviewBody");
+let reviewTimer = null;
+let gateAnswer = 0;
+
+function closeReview() { reviewEl.hidden = true; reviewBody.innerHTML = ""; }
+
+function reviewButton(text, cls, onClick) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = cls;
+  b.textContent = text;
+  if (onClick) b.addEventListener("click", onClick);
+  return b;
+}
+
+function showReviewCard() {
+  const d = t();
+  reviewBody.innerHTML = "";
+  const p = document.createElement("p");
+  p.className = "review-text";
+  p.textContent = d.reviewAsk;
+  const row = document.createElement("div");
+  row.className = "review-row";
+  row.append(
+    reviewButton(d.reviewNo, "review-btn", closeReview),
+    reviewButton(d.reviewYes, "review-btn review-btn-main", () => showGate(false)),
+  );
+  reviewBody.append(p, row);
+  reviewBody.setAttribute("aria-label", d.reviewYes);
+  reviewEl.hidden = false;
+}
+
+// A two-digit sum with a carry: easy for a parent, out of reach for a 6-year-old.
+function showGate(retry) {
+  const d = t();
+  const rnd = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+  const oa = rnd(3, 9), ob = rnd(10 - oa, 9);      // ones always carry
+  const a = rnd(1, 4) * 10 + oa, b = rnd(1, 4) * 10 + ob;
+  gateAnswer = a + b;
+  reviewBody.innerHTML = "";
+  const h = document.createElement("h2");
+  h.textContent = d.gateTitle;
+  const q = document.createElement("p");
+  q.className = "review-text";
+  q.textContent = (retry ? d.gateWrong + " " : "") + d.gateQ(a, b);
+  const form = document.createElement("form");
+  form.className = "review-row";
+  const input = document.createElement("input");
+  input.className = "review-input";
+  input.type = "text";
+  input.inputMode = "numeric";
+  input.pattern = "[0-9]*";
+  input.autocomplete = "off";
+  input.maxLength = 3;
+  input.setAttribute("aria-label", d.gateQ(a, b));
+  const ok = reviewButton(d.gateOk, "review-btn review-btn-main");
+  ok.type = "submit";
+  form.append(input, reviewButton(d.reviewNo, "review-btn", closeReview), ok);
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (parseInt(input.value, 10) !== gateAnswer) { showGate(true); return; }
+    const r = loadReview();
+    r.gatePassed = true;
+    saveReview(r);
+    closeReview();
+    const ask = reviewBridge();
+    if (ask) { try { ask(); } catch (err) {} }
+  });
+  reviewBody.append(h, q, form);
+  reviewBody.setAttribute("aria-label", d.gateTitle);
+  reviewEl.hidden = false;
+  input.focus();
+}
+
+document.addEventListener("brush:complete", () => {
+  const r = loadReview();
+  r.completed += 1;
+  saveReview(r);
+  if (!reviewBridge() || !reviewDue(r, Date.now())) return;
+  clearTimeout(reviewTimer);
+  reviewTimer = setTimeout(() => {
+    // Only on the finish screen: not once they've started again or opened settings.
+    if (!done || !settingsEl.hidden) return;
+    const now = loadReview();
+    if (!reviewDue(now, Date.now())) return;
+    now.asks += 1;          // showing the card is the ask, so "not now" counts
+    now.lastAsk = Date.now();
+    saveReview(now);
+    showReviewCard();
+  }, REVIEW_DELAY_MS);
+});
+const dropReview = () => { clearTimeout(reviewTimer); closeReview(); };
+els.primary.addEventListener("click", dropReview);
+els.reset.addEventListener("click", dropReview);
+reviewEl.addEventListener("click", (e) => { if (e.target === reviewEl) closeReview(); });
 
 // ---- Init ------------------------------------------------------------------
 buildScene();
