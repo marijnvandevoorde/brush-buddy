@@ -1,6 +1,20 @@
 #import "GameViewController.h"
 #import "AppAssetSchemeHandler.h"
+#import <StoreKit/StoreKit.h>
 #import <WebKit/WebKit.h>
+
+/// WKUserContentController retains its message handlers, and the controller
+/// retains the web view; this weak hop keeps the two from owning each other.
+@interface WeakScriptMessageHandler : NSObject <WKScriptMessageHandler>
+@property (nonatomic, weak) id<WKScriptMessageHandler> target;
+@end
+
+@implementation WeakScriptMessageHandler
+- (void)userContentController:(WKUserContentController *)controller
+      didReceiveScriptMessage:(WKScriptMessage *)message {
+    [self.target userContentController:controller didReceiveScriptMessage:message];
+}
+@end
 
 /// The app itself is unchanged from the web build; this controller only
 /// supplies what a browser would have — a full-screen surface with no chrome, a
@@ -11,7 +25,7 @@
 /// clips can autoplay over the finale. They are VP9-in-WebM, which WKWebView
 /// may refuse; app.js already falls back to its built-in SVG mascot when the
 /// video errors, so a refusal costs the animation, not the app.
-@interface GameViewController () <WKNavigationDelegate>
+@interface GameViewController () <WKNavigationDelegate, WKScriptMessageHandler>
 @property (nonatomic, strong) WKWebView *webView;
 @property (nonatomic, assign) BOOL pinsOrientation;
 @end
@@ -33,6 +47,12 @@
     config.allowsInlineMediaPlayback = YES;
     config.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone;
     config.suppressesIncrementalRendering = YES;
+    // app.js posts "review" only after a grown-up has passed its parental gate.
+    // Its presence is also how the page knows it is in the app and not on the
+    // web, where it shows no review card at all.
+    WeakScriptMessageHandler *reviewHandler = [[WeakScriptMessageHandler alloc] init];
+    reviewHandler.target = self;
+    [config.userContentController addScriptMessageHandler:reviewHandler name:@"review"];
 
     self.webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:config];
     self.webView.opaque = NO;
@@ -99,6 +119,23 @@
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     [self runScreenshotSceneIfRequested];
+}
+
+#pragma mark - Store review
+
+/// The system decides whether the review sheet actually appears (and caps it
+/// at three times a year); the page applies its own, stricter limits first.
+- (void)userContentController:(WKUserContentController *)controller
+      didReceiveScriptMessage:(WKScriptMessage *)message {
+    if (![message.name isEqualToString:@"review"]) return;
+    UIWindowScene *scene = self.view.window.windowScene;
+    if (scene == nil) return;
+    // AppStore.requestReview(in:) is Swift-only; this is its Objective-C
+    // counterpart, deprecated in the iOS 18 SDK but still working.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    [SKStoreReviewController requestReviewInScene:scene];
+#pragma clang diagnostic pop
 }
 
 #pragma mark - Screenshot support

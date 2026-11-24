@@ -1,5 +1,5 @@
 /* Brush Buddy service worker — offline-first caching. */
-const CACHE = "brush-buddy-v16";
+const CACHE = "brush-buddy-v17";
 const HEROES = ["fairy", "girl-dentist", "boy-dentist", "girl-super", "boy-super", "unicorn"];
 const ASSETS = [
   ".",

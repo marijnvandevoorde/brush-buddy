@@ -132,3 +132,10 @@ Answer **None / No** to every content question. Expected outcome: **4+**.
 > links without a parental gate, no third-party analytics or advertising). Brush
 > Buddy meets all of them already, but the choice is worth making deliberately
 > rather than by default.
+>
+> The one store-facing feature is the review prompt (from 1.1.1): after the
+> third completed brush a card asks grown-ups for a review, and the system
+> review sheet (`SKStoreReviewController` / Play In-App Review) only opens after
+> a parental gate (a two-digit sum with a carry). The Play review library adds
+> no permissions and collects nothing on the app's behalf, so the Data safety
+> answers above stay the same.

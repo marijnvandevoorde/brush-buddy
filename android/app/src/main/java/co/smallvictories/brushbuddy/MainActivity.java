@@ -31,12 +31,14 @@ public class MainActivity extends Activity {
     private AssetServer assetServer;
 
     /**
-     * Back button behaviour, evaluated inside the page: close the settings
-     * sheet if it is open, else tell the activity to exit. The app is a single
+     * Back button behaviour, evaluated inside the page: close the review card
+     * or the settings sheet if one is open, else tell the activity to exit. The app is a single
      * screen, so there is no in-page history to walk back through.
      */
     private static final String BACK_JS =
             "(function(){"
+          + "  var r=document.getElementById('review');"
+          + "  if(r&&!r.hidden){r.hidden=true;return 'handled';}"
           + "  var s=document.getElementById('settings');"
           + "  if(s&&!s.hidden){"
           + "    var c=document.getElementById('settingsClose');"
@@ -83,6 +85,11 @@ public class MainActivity extends Activity {
         s.setAllowContentAccess(false);
         s.setCacheMode(WebSettings.LOAD_NO_CACHE);
         s.setTextZoom(100);                    // the layout is tuned for a fixed scale
+
+        // app.js calls this only after a grown-up has passed its parental gate.
+        // Its presence is also how the page knows it is in the app and not on
+        // the web, where it shows no review card at all.
+        web.addJavascriptInterface(new ReviewBridge(this), ReviewBridge.NAME);
 
         web.setWebViewClient(new WebViewClient() {
             @Override
