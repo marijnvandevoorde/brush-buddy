@@ -94,7 +94,7 @@ const I18N = {
     colourOf: (n) => "Colour: " + n,
     buddyOf: (n) => "Buddy: " + n,
     themes: { candy: "Candy", rosewater: "Rosewater", "peach-blossom": "Peach", rocket: "Rocket", dino: "Dino", ocean: "Ocean", sunshine: "Sunshine", "mint-coral": "Mint", bright: "Bright" },
-    heroes: { fairy: "Fairy", "girl-dentist": "Girl Dentist", "boy-dentist": "Boy Dentist", "girl-super": "Girl Hero", "boy-super": "Boy Hero" },
+    heroes: { fairy: "Fairy", "girl-dentist": "Girl Dentist", "boy-dentist": "Boy Dentist", "girl-super": "Girl Hero", "boy-super": "Boy Hero", unicorn: "Unicorn" },
     // streak pill (used by streaks.js)
     oneDay: "1 day",
     nDays: (n) => `${n} days`,
@@ -134,7 +134,7 @@ const I18N = {
     colourOf: (n) => "Kleur: " + n,
     buddyOf: (n) => "Maatje: " + n,
     themes: { candy: "Snoep", rosewater: "Rozenwater", "peach-blossom": "Perzik", rocket: "Raket", dino: "Dino", ocean: "Oceaan", sunshine: "Zonneschijn", "mint-coral": "Munt", bright: "Helder" },
-    heroes: { fairy: "Fee", "girl-dentist": "Tandarts (meisje)", "boy-dentist": "Tandarts (jongen)", "girl-super": "Held (meisje)", "boy-super": "Held (jongen)" },
+    heroes: { fairy: "Fee", "girl-dentist": "Tandarts (meisje)", "boy-dentist": "Tandarts (jongen)", "girl-super": "Held (meisje)", "boy-super": "Held (jongen)", unicorn: "Eenhoorn" },
     oneDay: "1 dag",
     nDays: (n) => `${n} dagen`,
     todayDone: "✓ vandaag",
@@ -174,7 +174,7 @@ const I18N = {
     colourOf: (n) => "Couleur : " + n,
     buddyOf: (n) => "Copain : " + n,
     themes: { candy: "Bonbon", rosewater: "Eau de rose", "peach-blossom": "Pêche", rocket: "Fusée", dino: "Dino", ocean: "Océan", sunshine: "Soleil", "mint-coral": "Menthe", bright: "Éclatant" },
-    heroes: { fairy: "Fée", "girl-dentist": "Dentiste (fille)", "boy-dentist": "Dentiste (garçon)", "girl-super": "Héroïne", "boy-super": "Héros" },
+    heroes: { fairy: "Fée", "girl-dentist": "Dentiste (fille)", "boy-dentist": "Dentiste (garçon)", "girl-super": "Héroïne", "boy-super": "Héros", unicorn: "Licorne" },
     oneDay: "1 jour",
     nDays: (n) => `${n} jours`,
     todayDone: "✓ aujourd'hui",
@@ -213,7 +213,7 @@ const I18N = {
     colourOf: (n) => "Color: " + n,
     buddyOf: (n) => "Amigo: " + n,
     themes: { candy: "Caramelo", rosewater: "Agua de rosas", "peach-blossom": "Melocotón", rocket: "Cohete", dino: "Dino", ocean: "Océano", sunshine: "Sol", "mint-coral": "Menta", bright: "Brillante" },
-    heroes: { fairy: "Hada", "girl-dentist": "Dentista (niña)", "boy-dentist": "Dentista (niño)", "girl-super": "Heroína", "boy-super": "Héroe" },
+    heroes: { fairy: "Hada", "girl-dentist": "Dentista (niña)", "boy-dentist": "Dentista (niño)", "girl-super": "Heroína", "boy-super": "Héroe", unicorn: "Unicornio" },
     oneDay: "1 día",
     nDays: (n) => `${n} días`,
     todayDone: "✓ hoy",
@@ -802,6 +802,7 @@ const HEROES = [
   { key: "boy-dentist",  label: "Boy Dentist" },
   { key: "girl-super",   label: "Girl Hero" },
   { key: "boy-super",    label: "Boy Hero" },
+  { key: "unicorn",      label: "Unicorn" },
 ];
 
 function currentTheme() { try { return localStorage.getItem("brushBuddy.theme") || "candy"; } catch (e) { return "candy"; } }
