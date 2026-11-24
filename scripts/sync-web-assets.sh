@@ -18,7 +18,7 @@ SRC=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 # privacy.html is web-only — the stores link to the policy on small-victories.co.
 FILES="index.html styles.css fonts.css app.js streak-logic.js streaks.js manifest.webmanifest"
 DIRS="fonts icons"
-HEROES="fairy girl-dentist boy-dentist girl-super boy-super"
+HEROES="fairy girl-dentist boy-dentist girl-super boy-super unicorn"
 
 [ -f "$SRC/index.html" ] || { echo "error: no index.html at $SRC" >&2; exit 1; }
 

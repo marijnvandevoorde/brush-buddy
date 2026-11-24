@@ -349,7 +349,7 @@ body {
 }
 .lang-pick.sel { background: color-mix(in srgb, var(--accent) 22%, #fff); box-shadow: 0 0 0 2px var(--accent); }
 
-.hero-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.hero-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .hero-pick {
   cursor: pointer; border: none; background: rgba(0,0,0,0.04);
   border-radius: 14px; padding: 6px 4px 4px;

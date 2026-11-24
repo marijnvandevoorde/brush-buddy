@@ -78,7 +78,7 @@
   async function pickBuddy(key) {
     await openSettings();
     var grid = $("#heroGrid");
-    var idx = ["fairy", "girl-dentist", "boy-dentist", "girl-super", "boy-super"].indexOf(key);
+    var idx = ["fairy", "girl-dentist", "boy-dentist", "girl-super", "boy-super", "unicorn"].indexOf(key);
     var btn = grid && grid.children[idx];
     if (!btn) throw new Error("scene: no buddy " + key);
     await tap(btn);        // also closes settings and previews the buddy
