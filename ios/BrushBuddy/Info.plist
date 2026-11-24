@@ -56,6 +56,25 @@
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
 
+    <!-- iOS 27 requires the scene lifecycle; one window, no multi-window. -->
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+        <key>UISceneConfigurations</key>
+        <dict>
+            <key>UIWindowSceneSessionRoleApplication</key>
+            <array>
+                <dict>
+                    <key>UISceneConfigurationName</key>
+                    <string>Default</string>
+                    <key>UISceneDelegateClassName</key>
+                    <string>SceneDelegate</string>
+                </dict>
+            </array>
+        </dict>
+    </dict>
+
     <!-- Solid blush launch screen matching the app's own background, so the
          first frame does not flash a different colour. -->
     <key>UILaunchScreen</key>
