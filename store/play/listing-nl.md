@@ -60,7 +60,7 @@ de mond schoner wordt.
 EEN BELONING OM VOOR DOOR TE ZETTEN
 
 Haal het einde en het gekozen personage springt het scherm op om te vieren — een
-tandenfee, een tandarts (meisje of jongen), of een held (meisje of jongen). Je
+tandenfee, een tandarts (meisje of jongen), een held (meisje of jongen), of een eenhoorn. Je
 kind kiest zelf welk, en dat is eerlijk gezegd de reden dat het morgen opnieuw
 wil poetsen.
 
@@ -73,7 +73,7 @@ gaat nooit iets verloren.
 AANPASBAAR AAN JOUW KIND
 
 • Negen kleurenschema's, van snoeproze tot rustig mintgroen.
-• Vijf maatjes om uit te kiezen.
+• Zes maatjes om uit te kiezen.
 • Een rustmodus die het trillen en de drukkere animaties uitzet, voor kinderen
   die dat te veel vinden.
 • Geluid aan of uit, met zachte tikjes in plaats van deuntjes.

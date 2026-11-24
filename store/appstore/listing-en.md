@@ -66,7 +66,7 @@ gets cleaner.
 A REWARD WORTH FINISHING FOR
 
 Reach the end and the buddy's chosen character bursts onto the screen to
-celebrate — a tooth fairy, a girl or boy dentist, or a girl or boy superhero.
+celebrate — a tooth fairy, a girl or boy dentist, a girl or boy superhero, or a unicorn.
 Your child picks which one, and it is genuinely the reason they will come back
 tomorrow.
 
@@ -79,7 +79,7 @@ taken away.
 MADE TO SUIT YOUR CHILD
 
 • Nine colour schemes, from candy pink to calm teal.
-• Five characters to choose between.
+• Six characters to choose between.
 • A calm mode that turns off the buzzing and the livelier animation, for
   children who find that too much.
 • Sound on or off, with soft cues rather than jingles.
